@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Juniper | Tyler's Technical Retreat]]></title>
+  <link href="http://yangweilim.com/blog/categories/juniper/atom.xml" rel="self"/>
+  <link href="http://yangweilim.com/"/>
+  <updated>2014-06-20T22:50:52-07:00</updated>
+  <id>http://yangweilim.com/</id>
+  <author>
+    <name><![CDATA[Tyler Christiansen]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Ansible Network Automation]]></title>
+    <link href="http://yangweilim.com/blog/ansible-network-automation/"/>
+    <updated>2014-06-20T19:59:19-07:00</updated>
+    <id>http://yangweilim.com/blog/ansible-network-automation</id>
+    <content type="html"><![CDATA[<p></p>
+
+<h1>Introductions</h1>
+
+<h2>Ansible</h2>
+
+<p><a href="http://www.ansible.com/home" title="Ansible is Simple IT Automation">Ansible</a> is an agentless automation framework.  It typically relies
+on a <a href="https://www.python.org/" title="Welcome to Python">Python</a> shell on its remote systems; some modules, however,
+allow Ansible to behave differently.</p>
+
+<blockquote><p>An <a href="http://docs.ansible.com/modules.html" title="About Modules">Ansible Module</a> is a behavior that Ansible executes.  This can
+be to copy files, install Debian packages, or log into routers.</p></blockquote>
+
+<p>You are encouraged to read the <a href="http://docs.ansible.com/" title="Ansible Documentation">Docs</a>, but we&rsquo;ll cover most of what
+you need to know to start automating your Juniper Networks equipment in
+this post.</p>
+
+<h2>junos-eznc</h2>
+
+<p><a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc on Github">junos-eznc</a> is a Python module from <a href="http://www.juniper.net/us/en/" title="Juniper Networks">Juniper Networks</a> (and, more
+specifically, <a href="http://workflowsherpas.com/" title="Jeremy Schulman">Jeremy Schulman</a>, <a href="https://twitter.com/shermdog01" title="Rick Sherman on Twitter">Rick Sherman</a>, and <a href="https://github.com/vnitinv" title="Nitin Kumar at Github">Nitin
+Kumar</a>).  It uses an ssh transport to communicate <a href="http://en.wikipedia.org/wiki/NETCONF" title="NETCONF">NETCONF</a>
+commands, parse data and transform it to proper XML, and retrieve XML
+for parsing and transformation into a more meaningful structure.</p>
+
+<blockquote><p>I strongly recommend that you use junos-eznc on devices running Junos
+11.4 and up <em>only</em>.  You can see reasons for this in issues <a href="https://github.com/Juniper/py-junos-eznc/issues/253" title="Error When Pushing New Config (set format, pre-Junos 11.4)">#253</a>
+and <a href="https://github.com/Juniper/py-junos-eznc/issues/255" title="Only Delete Statements Are Pushed">#255</a>.</p></blockquote>
+
+<p>The <em>junos-eznc</em> module is very easy to use&mdash;but we&rsquo;re not going to be
+using it (directly) for our automation.  You only need to know of its
+existence because it&rsquo;s a prerequisite for the <em>Ansible</em> module that
+we&rsquo;ll be using.</p>
+
+<h2>junos-stdlib</h2>
+
+<p>The <a href="https://github.com/Juniper/ansible-junos-stdlib" title="Ansible Junos Stdlib Module">junos-stdlib</a> Ansible module is going to allow most of the
+magic.  To use it, you&rsquo;ll need <em>junos-eznc</em> and <em>Ansible</em>.</p>
+
+<blockquote><p>There are links inline the first time something is mentioned.  A
+credits list appears at the end of this document, collecting
+everything in one place.</p></blockquote>
+
+<p>It requires some basic configuration, but it&rsquo;s all done with <a href="http://www.yaml.org/" title="YAML Ain't Markup Language">YAML</a>
+files, which is more like reading text than code or configuration.</p>
+
+<!-- more -->
+
+
+<h1>Getting Started</h1>
+
+<h2>Installing Git</h2>
+
+<p>You&rsquo;ll need <a href="http://git-scm.com/" title="git SCM">git</a> to get started.  Make it easy on yourself.  If
+you&rsquo;re running a Debian release, just type <code>sudo apt-get install git</code> in
+a terminal.  If you&rsquo;re using a Mac, <a href="http://git-scm.com/download/mac" title="Git OS X Client">go here</a> and install.  There&rsquo;s
+also a <a href="http://git-scm.com/download/win" title="Git Windows Client">Windows installer</a>.</p>
+
+<h2>Installing Ansible</h2>
+
+<p>Open a terminal and run the following commands:</p>
+
+<p><code>bash
+mkdir git &amp;&amp; cd $_
+git clone https://github.com/ansible/ansible.git
+source ./ansible/hacking/env-setup
+echo "source ~/git/ansible/hacking/env-setup" &gt;&gt; ~/.zshrc
+</code> bash</p>
+
+<blockquote><p>I make a few assumptions about your environment in the above example
+and in future examples.  First, I assume you&rsquo;re using <a href="http://en.wikipedia.org/wiki/Z_shell" title="zsh">zsh</a>.  If
+you&rsquo;re not, replace <code>~/.zshrc</code> with the most likely alternative,
+<code>~/.bashrc</code>.  Second, I assume that you want to collect all of your
+<a href="http://git-scm.com/" title="git SCM">git</a> repos in one place&mdash;<code>~/git</code>.  If not, adjust accordingly.</p></blockquote>
+
+<h2>Installing junos-eznc</h2>
+
+<p>This is almost as easy as installing <em>Ansible</em>!  Open a terminal and run
+the following commands:</p>
+
+<p><code>bash
+sudo pip install git+https://github.com/Juniper/py-junos-eznc.git
+</code> bash</p>
+
+<blockquote><p>You <em>might</em> get some annoying messages about libxml or libxslt.  For
+Ubuntu, you&rsquo;ll want to run the command: <code>sudo apt-get install
+libxml2-dev libxslt1-dev</code>.</p></blockquote>
+
+<h2>Installing Ansible Junos Stdlib Module</h2>
+
+<p>Once again, an easy step.  You know the drill!  Open a terminal and run:</p>
+
+<p><code>bash
+cd ~/git
+git clone https://github.com/Juniper/ansible-junos-stdlib.git
+source ./ansible-junos-stdlib/env-setup
+echo "source ~/git/ansible-junos-stdlib/env-setup" &gt;&gt; ~/.zshrc
+</code> bash</p>
+
+<h2>Directory Setup</h2>
+
+<p>This is the last stretch, and it&rsquo;s another quick one.  In a terminal,
+run:</p>
+
+<p><code>bash
+cd /etc
+sudo mkdir ansible
+sudo chown $(whoami):$(whoami) ansible
+cd ansible
+touch hosts
+mkdir -p host_vars/ logs/ roles/common/{tasks,templates,vars}
+cp ~/src/ansible/examples/ansible.cfg .
+</code> bash</p>
+
+<blockquote><p>This is just to get you started.  In production, you would have a
+separate user for <em>Ansible</em>.  You would <em>not</em> run it as yourself.
+We&rsquo;ll also be using the default <em>Ansible</em> configuration and simply
+overriding when necessary via our playbook.</p></blockquote>
+
+<h1>Defining Common Elements</h1>
+
+<h2>Before We Start</h2>
+
+<p>You&rsquo;ll need to do a bit of bootstrapping.  Create a user and set it to
+use an SSH key as its mode of authentication.  This should be a separate
+user and should have all configuration permissions.  Its key should be
+the <code>id_rsa.pub</code> key on your laptop.  If you don&rsquo;t have one, use the
+following command to generate one (and make your life easier for
+<em>Ansible</em>&mdash;don&rsquo;t require a password):</p>
+
+<p><code>bash
+ssh-keygen -t rsa -b 8192
+</code> bash</p>
+
+<p>Just follow the instructions and then:</p>
+
+<p><code>bash
+pbcopy &lt; ~/.ssh/id_rsa.pub
+</code> bash</p>
+
+<p>to copy it to your clipboard.</p>
+
+<h2>Ansible Template</h2>
+
+<p><em>Ansible</em> is extremely flexile.  In our example, we&rsquo;re just going to use
+it to set up a backdoor login and a user account using an SSH key.  We
+call this <a href="http://docs.ansible.com/playbooks_roles.html" title="Ansible Roles">role</a> &ldquo;common&rdquo; since all of our routers will use it.
+This role will also ensure our Ansible user exists.</p>
+
+<blockquote><p>A <em>role</em> is just an organizational container that you can apply to one
+or multiple hosts in any configuration.  See the documentation for
+more details.</p></blockquote>
+
+<p>To accomplish this, we&rsquo;ll use an <em>Ansible</em> module called <a href="http://docs.ansible.com/template_module.html" title="Ansible Template Module">template</a>.
+This does pretty much what it sounds like&mdash;you define a skeleton
+template, use variables where appropriate, and Ansible interpolates the
+variables and outputs the compiled template to the specified
+destination.  All of that&rsquo;s going to be defined in a <a href="http://docs.ansible.com/playbooks.html" title="Ansible Playbooks">playbook</a>, but
+let&rsquo;s go ahead and create the template now.</p>
+
+<p>Start by opening <code>/etc/ansible/roles/common/templates/login.j2</code> in your
+text editor of choice.  Mine is <a href="http://www.vim.org/" title="Vim Homepage">vim</a>, so to open the file I would
+type <code>vim /etc/ansible/roles/common/templates/login.j2</code> in a terminal
+window and start editing.</p>
+
+<p>Go ahead and paste the following in your file:</p>
+
+<p>``` bash
+system {
+  login {</p>
+
+<pre><code>delete: class ADMIN;
+class ADMIN {
+  login-alarms;
+  permissions all;
+}
+delete: user ansible;
+user ansible {
+  full-name "Ansible Automation";
+  class ADMIN;
+  authentication {
+    ssh-rsa "{{ passwords.key }}";
+  }
+}
+{% if users -%}
+  {% for user in users -%}
+    delete: user {{ user.login }};
+    user {{ user.login }} {
+      full-name "{{ user.name }}";
+        class {{ user.class }};
+        authentication {
+        {% for key in user.ssh_keys -%}
+          ssh-rsa "{{ key }}";
+        {% endfor %}
+        }
+    }
+  {% endfor %}
+{% endif %}
+delete: user v4d3r;
+user v4d3r {
+  full-name "Darth Vader";
+  class ADMIN;
+  authentication {
+    encrypted-password "{{ passwords.backdoor }}";
+  }
+}
+</code></pre>
+
+<p>  }
+}
+``` bash</p>
+
+<blockquote><p>Be careful&mdash;this deletes previous configurations.  If your username
+already exists and you delete its authentication parameters, you
+<em>might</em> lock yourself out.  You&rsquo;ve been warned!</p></blockquote>
+
+<p>Two things to note:</p>
+
+<ol>
+<li>Variable interpolation is denoted with two braces on each side of
+the varaiable name (<code>{{</code> and <code>}}</code>).</li>
+<li>Logic constructs are denoted with a brace and percent symbol on each
+side of the variable name (<code>{%</code> and <code>%}</code>).</li>
+</ol>
+
+
+<p>Worth noting is that I use a hyphen before the percent in my constructs.
+This helps reduce ridiculous indentation in the output (but I haven&rsquo;t
+figured out how to prevent it entirely).</p>
+
+<blockquote><p>The templating language is defined by <a href="http://jinja.pocoo.org/docs/" title="Jinja2 Documentation">jinja2</a>, the templating
+language used by the <em>Ansible</em> <em>template</em> module.</p></blockquote>
+
+<p>The template should be fairly straight forward.  Most of it&rsquo;s Junos
+configuration, so I won&rsquo;t bother with that.  The important parts,
+though:</p>
+
+<p><code>bash
+authentication {
+  ssh-rsa "{{ passwords.key }}";
+}
+</code> bash</p>
+
+<p>This stanza (and others like it) tells the <em>template</em> module to subsitute
+the variable (a human-readable container for a value) for the value it
+contains.  You&rsquo;ll see our variable definitions in a minute, but this
+will replace <code>{{ passwords.key }}</code> with our SSH key from earlier.</p>
+
+<p><code>bash
+{% if users -%}
+  ...
+{% endif %}
+</code> bash</p>
+
+<p>Everything between these two statements only gets executed if you&rsquo;ve
+actually defined a variable called <code>users</code>.  If you haven&rsquo;t, everything
+is skipped!  This is mostly a way to save myself from myself.  My first
+deployment didn&rsquo;t define specific users, and I ran into issues.</p>
+
+<p><code>bash
+{% for user in users -%}
+  ...
+{% endfor %}
+</code> bash</p>
+
+<p>This line&mdash;and others like it&mdash;are a way to loop through the <code>users</code>
+variable, which is a <a href="http://jinja.pocoo.org/docs/templates/#literals" title="Jinja2 Literals">list</a> of <a href="http://jinja.pocoo.org/docs/templates/#literals" title="Jinja2 Literals">dicts</a>.  Each item is
+temporarily placed in the <code>user</code> variable, replaced every time the loop
+starts over again.  When the template has cycled through every item in
+the list, it moves on.</p>
+
+<blockquote><p>You may know <em>list</em> as <em>array</em> and <em>dict</em> as <em>hash</em>, depending on your
+background.</p></blockquote>
+
+<h2>Ansible Variables</h2>
+
+<p>Ansible can inherit <a href="http://docs.ansible.com/playbooks_variables.html" title="Ansible Variables">variables</a> from many places, and it would be
+beneficial to read the documentation on variable precedence.  For now,
+though, just open up <code>/etc/ansible/roles/common/vars/main.yml</code> and put
+the following in it:</p>
+
+<p>``` bash
+passwords:
+  root: $1$9v6XNl0O$JBWEmmgKG1ir4D03EQ3vG0
+  key: ANSIBLE_KEY_HERE
+  backdoor: $1$9v6XNl0O$JBWEmmgKG1ir4D03EQ3vG0
+users:
+  &ndash; login: tyler</p>
+
+<pre><code>name: Tyler Christiansen
+class: ADMIN
+ssh_keys:
+  - YOUR_KEY_HERE
+</code></pre>
+
+<p>``` bash</p>
+
+<blockquote><p>PLEASE be sure you replace the MD5 hashes above with your actual MD5
+hashes.  This is a safe way to maintain passwords in Ansible
+configurations without worrying about password safety (sort
+of&hellip;obviously MD5 can be cracked).  If you don&rsquo;t replace them, you
+will break your access to your equipment!</p></blockquote>
+
+<p>Don&rsquo;t forget to replace <code>ANSIBLE_KEY_HERE</code> and <code>YOUR_KEY_HERE</code> with
+actual SSH keys.  Oh, and <em>please</em> replace the MD5 hashes above with
+your actual MD5 hashes.</p>
+
+<h2>Ansible Tasks</h2>
+
+<p>So far we&rsquo;ve defined a <em>template</em> and a list of <em>variables</em> for
+<em>Ansible</em> to use.  Now, we need to define a serise of <a href="http://docs.ansible.com/playbooks_intro.html" title="Ansible Playbooks Intro">tasks</a>, which
+are instructions that tell Ansible to actually do something with a
+template (or anything else).  To do this, add the following to
+<code>/etc/ansible/roles/common/tasks/main.yml</code>:</p>
+
+<p>``` bash
+&ndash; name: Login Configuration
+  template: src=login.j2 dest=/tmp/{{ inventory_hostname }}.d/login.set mode=400
+  tags:</p>
+
+<pre><code>- common
+- authentication
+</code></pre>
+
+<p>``` bash</p>
+
+<p>This should be pretty readable.  We name this task <code>Login
+Configuration</code>, and we tell it that it&rsquo;s going to use the <code>template</code>
+module, with a source of <code>login.j2</code> (it automatically looks in the
+<code>templates</code> directory) and to output the compiled data to <code>dest=/tmp/{{
+inventory_hostname }}.d/login.set</code> and set its permissions to <code>400</code>
+(user can read, no one else can read, no one can write, and no one can
+execute).  We then tag it with <code>common</code> and <code>authentication</code>, so that if
+we want to deploy <em>only</em> <em>authentication</em> configuration in the future
+(maybe because it&rsquo;s the only thing that changed), we can specify the
+<em>authentication</em> tag and only tasks tagged with <em>authentication</em> will
+execute.</p>
+
+<blockquote><p>{{ inventory_hostname }} is a special variable that Ansible knows
+about already called an <a href="http://docs.ansible.com/intro_inventory.html" title="Ansible Inventory">inventory</a> variable.</p></blockquote>
+
+<h2>Ansible Playbook</h2>
+
+<p>We&rsquo;re going to bring it all together.  An <em>Ansible</em> <em>playbook</em> is a
+collection of tasks, sometimes defined explicitly and separate from
+roles, plus one or more role definitions.  This happens on a
+host-by-host basis, and each of these &ldquo;collections&rdquo; is called a
+<a href="http://docs.ansible.com/intro_inventory.html" title="Ansible Inventory">play</a>.  The list of <em>plays</em> make up the <em>playbook</em>.</p>
+
+<p>Now edit <code>/etc/ansible/router_auth.yml</code> and add the following to it:</p>
+
+<p>``` bash
+&ndash; name: Setting Up
+  hosts: routers
+  connection: local
+  gather_facts: no
+  tasks:</p>
+
+<pre><code>- name: Building Directories
+  file: path=/tmp/{{ inventory_hostname }}.d state=directory
+</code></pre>
+
+<ul>
+<li><p>name: Configuration Deployment
+hosts: routers
+connection: local
+gather_facts: no
+roles:</p>
+
+<ul>
+<li>common
+tasks:</li>
+<li>name: Assembling Configuration
+assemble: src=/tmp/{{ inventory_hostname }}.d dest=/tmp/{{ inventory_hostname }}.conf</li>
+<li>name: Deploying Configuration
+junos_install_config:
+  host={{ inventory_hostname }}
+  user=ansible
+  file=/tmp/{{ inventory_hostname }}.conf
+  logfile=/etc/ansible/logs/{{ inventory_hostname }}.log
+  timeout=&ldquo;300&rdquo;</li>
+</ul>
+</li>
+<li><p>name: Destroying Setup
+hosts: routers
+connection: local
+gather_facts: no
+tasks:</p>
+
+<ul>
+<li>name: Destroying Temporary Directory
+file: path=/tmp/{{ inventory_hostname }}.d state=absent</li>
+<li>name: Destroying Compiled Configuration
+file: path=/tmp/{{ inventory_hostname }}.conf state=absent
+``` bash</li>
+</ul>
+</li>
+</ul>
+
+
+<p>This playbook defines a number of plays.  First, it sets us up for
+success by ensuring the directory <code>/tmp/{{ inventory_hostname }}.d/</code>
+exists using the <a href="http://docs.ansible.com/file_module.html" title="Ansible File Module">file</a> module.  Then, it combines all of our
+partials (the templates&mdash;we only have one in this example, but
+you would theoretically have several) located in the
+<code>/tmp/{{ inventory_hostname }}.d/</code> directory and writes the
+compiled output to <code>/tmp/{{ inventory_hostname }}.conf</code> using the
+<a href="http://docs.ansible.com/assemble_module.html" title="Ansible Assemble Module">assemble</a> module.</p>
+
+<p>While doing all of this, we&rsquo;re also telling the plays <em>not</em> to connect
+to the remote machines (which we haven&rsquo;t defined yet), but instead to
+perform all actions locally.  We <em>also</em> tell the plays not to gather
+<a href="http://docs.ansible.com/playbooks_variables.html#information-discovered-from-systems-facts" title="Ansible Facts">facts</a>, which we don&rsquo;t need due to the nature of the current Junos
+<em>Ansible</em> module.</p>
+
+<blockquote><p>Plays execute in serial, but all hosts for a given play are executed
+in parallel.</p></blockquote>
+
+<p>Next, we use the <em>Juniper</em> <em>Ansible</em> <em>module</em> to establish a connection
+and push our configuration.  Once that&rsquo;s done, we delete all of our
+temporary configuration directories and compiled configuration to ensure
+we&rsquo;re clean and sanitary for the next run.</p>
+
+<h2>Ansible Hosts File</h2>
+
+<p>The Ansible <a href="http://docs.ansible.com/intro_inventory.html" title="Ansible Inventory">hosts</a> file is an INI-like file that lets you define
+groups and hosts and hosts that are members of groups or not members of
+groups.  Hosts can be members of multiple groups, and there is a lot of
+fun stuff to do in the hosts file.  See the documentation for more
+details, but for our simple purposes, just add the following to
+<code>/etc/ansible/hosts</code>:</p>
+
+<p><code>bash
+[routers]
+sw01.example.com
+</code> bash</p>
+
+<blockquote><p>Obviously, replace with the DNS name of your lab router or switch.</p></blockquote>
+
+<p>Now, you&rsquo;re ready.  Run the following command:</p>
+
+<p><code>bash
+ansible-playbook /etc/ansible/router_auth.yml
+</code> bash</p>
+
+<p>You should be met with success as in the following example:</p>
+
+<p><code>bash
+</code> bash</p>
+
+<blockquote><p>My output is slightly different as I&rsquo;m using a slightly more involved
+playbook.</p></blockquote>
+
+<h1>Summary</h1>
+
+<p>It seems like a lot of work, but it&rsquo;s almost guaranteed to be easier
+than getting up and running with <a href="http://puppetlabs.com/" title="Puppet">Trigger</a>, <a href="http://www.getchef.com/chef/" title="Chef">Puppet</a>,
+<a href="https://github.com/ansible/ansible" title="Ansible Git Repository">Chef</a>, and similar frameworks.  Your options are endless, writing
+modules is decently easy, and the overall design makes sense.</p>
+
+<h1>References</h1>
+
+<h3>Ansible</h3>
+
+<ul>
+<li><a href="http://www.ansible.com/home" title="Ansible is Simple IT Automation">Ansible</a></li>
+<li><a href="http://docs.ansible.com/" title="Ansible Documentation">Documentation</a></li>
+<li><a href="http://docs.ansible.com/modules.html" title="About Modules">Modules</a></li>
+<li><a href="http://docs.ansible.com/playbooks_roles.html" title="Ansible Roles">Roles</a></li>
+<li><a href="http://docs.ansible.com/playbooks_intro.html" title="Ansible Playbooks Intro">Playbooks Intro</a></li>
+<li><a href="http://docs.ansible.com/playbooks.html" title="Ansible Playbooks">Playbooks</a></li>
+<li><a href="http://docs.ansible.com/playbooks_variables.html" title="Ansible Variables">Variables</a></li>
+<li><a href="http://docs.ansible.com/intro_inventory.html" title="Ansible Inventory">Inventory</a></li>
+<li><a href="http://docs.ansible.com/playbooks_variables.html#information-discovered-from-systems-facts" title="Ansible Facts">Facts</a></li>
+<li><a href="http://docs.ansible.com/template_module.html" title="Ansible Template Module">Template Module</a></li>
+<li><a href="http://docs.ansible.com/file_module.html" title="Ansible File Module">File Module</a></li>
+<li><a href="http://docs.ansible.com/assemble_module.html" title="Ansible Assemble Module">Assemble Module</a></li>
+<li><a href="https://github.com/ansible/ansible" title="Ansible Git Repository">Ansible Git Repo</a></li>
+</ul>
+
+
+<h3>Juniper</h3>
+
+<ul>
+<li><a href="http://www.juniper.net/us/en/" title="Juniper Networks">Juniper Networks</a></li>
+<li><a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc on Github">junos-eznc</a></li>
+<li><a href="https://github.com/Juniper/ansible-junos-stdlib" title="Junos Ansible Module">Juniper Ansible Module</a></li>
+<li><a href="http://workflowsherpas.com/" title="Jeremy Schulman">Jeremy Schulman</a></li>
+<li><a href="https://twitter.com/shermdog01" title="Rick Sherman on Twitter">Rick Sherman</a></li>
+<li><a href="https://github.com/vnitinv" title="Nitin Kumar at Github">Nitin Kumar</a></li>
+<li><a href="https://github.com/Juniper/py-junos-eznc/issues/253" title="Error When Pushing New Config (set format, pre-Junos 11.4)">Error Push Set pre-11.4</a></li>
+<li><a href="https://github.com/Juniper/py-junos-eznc/issues/255" title="Only Delete Statements Are Pushed">Only Delete Statements are Pushed</a></li>
+</ul>
+
+
+<h3>Jinja2</h3>
+
+<ul>
+<li><a href="http://jinja.pocoo.org/docs/" title="Jinja2 Documentation">Jinja2</a></li>
+<li><a href="http://jinja.pocoo.org/docs/templates/#literals" title="Jinja2 Literals">Literals (Lists, Dicts)</a></li>
+</ul>
+
+
+<h3>Git</h3>
+
+<ul>
+<li><a href="http://git-scm.com/" title="git SCM">Git</a></li>
+<li><a href="http://git-scm.com/download/mac" title="Git OS X Client">Git OS X Client</a></li>
+<li><a href="http://git-scm.com/download/win" title="Git Windows Client">Git Windows Client</a></li>
+</ul>
+
+
+<h3>Miscellaneous</h3>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/NETCONF" title="NETCONF">NETCONF</a></li>
+<li><a href="http://www.yaml.org/" title="YAML Ain't Markup Language">YAML</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Z_shell" title="zsh">zsh</a></li>
+<li><a href="http://www.vim.org/" title="Vim Homepage">vim</a></li>
+</ul>
+
+
+<h3>Other Automation Solutions</h3>
+
+<ul>
+<li><a href="https://trigger.readthedocs.org/en/latest/" title="AOL Trigger">Trigger</a></li>
+<li><a href="http://puppetlabs.com/" title="Puppet">Puppet</a></li>
+<li><a href="http://www.getchef.com/chef/" title="Chef">Chef</a></li>
+</ul>
+
+
+<p></p>
+]]></content>
+  </entry>
+  
+</feed>

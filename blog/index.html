@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Tyler's Technical Retreat</title>
+  <meta name="author" content="Tyler Christiansen">
+
+  
+  <meta name="description" content="Introductions Ansible Ansible is an agentless automation framework. It typically relies
+on a Python shell on its remote systems; some modules, &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://yangweilim.com/blog">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Tyler's Technical Retreat" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+  
+
+</head>
+
+<body    class="collapse-sidebar sidebar-footer" >
+  <nav role="navigation">
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:yangweilim.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Type to Search"/>
+  </fieldset>
+</form>
+  
+
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/archives">Archieves</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <header role="banner"><div class='hero'>
+	<div class='wrap'>
+	  <h1><a href="/">Tyler's Technical Retreat</a></h1>
+	  
+	    <h2>Automation--Integration--Design--Programming</h2>
+	  
+	</div>
+</div>
+
+</header>
+  
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/ansible-network-automation/">Ansible Network Automation</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-20T19:59:19-07:00" pubdate data-updated="true">Jun 20<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Introductions</h1>
+
+<h2>Ansible</h2>
+
+<p><a href="http://www.ansible.com/home" title="Ansible is Simple IT Automation">Ansible</a> is an agentless automation framework.  It typically relies
+on a <a href="https://www.python.org/" title="Welcome to Python">Python</a> shell on its remote systems; some modules, however,
+allow Ansible to behave differently.</p>
+
+<blockquote><p>An <a href="http://docs.ansible.com/modules.html" title="About Modules">Ansible Module</a> is a behavior that Ansible executes.  This can
+be to copy files, install Debian packages, or log into routers.</p></blockquote>
+
+<p>You are encouraged to read the <a href="http://docs.ansible.com/" title="Ansible Documentation">Docs</a>, but we&rsquo;ll cover most of what
+you need to know to start automating your Juniper Networks equipment in
+this post.</p>
+
+<h2>junos-eznc</h2>
+
+<p><a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc on Github">junos-eznc</a> is a Python module from <a href="http://www.juniper.net/us/en/" title="Juniper Networks">Juniper Networks</a> (and, more
+specifically, <a href="http://workflowsherpas.com/" title="Jeremy Schulman">Jeremy Schulman</a>, <a href="https://twitter.com/shermdog01" title="Rick Sherman on Twitter">Rick Sherman</a>, and <a href="https://github.com/vnitinv" title="Nitin Kumar at Github">Nitin
+Kumar</a>).  It uses an ssh transport to communicate <a href="http://en.wikipedia.org/wiki/NETCONF" title="NETCONF">NETCONF</a>
+commands, parse data and transform it to proper XML, and retrieve XML
+for parsing and transformation into a more meaningful structure.</p>
+
+<blockquote><p>I strongly recommend that you use junos-eznc on devices running Junos
+11.4 and up <em>only</em>.  You can see reasons for this in issues <a href="https://github.com/Juniper/py-junos-eznc/issues/253" title="Error When Pushing New Config (set format, pre-Junos 11.4)">#253</a>
+and <a href="https://github.com/Juniper/py-junos-eznc/issues/255" title="Only Delete Statements Are Pushed">#255</a>.</p></blockquote>
+
+<p>The <em>junos-eznc</em> module is very easy to use&mdash;but we&rsquo;re not going to be
+using it (directly) for our automation.  You only need to know of its
+existence because it&rsquo;s a prerequisite for the <em>Ansible</em> module that
+we&rsquo;ll be using.</p>
+
+<h2>junos-stdlib</h2>
+
+<p>The <a href="https://github.com/Juniper/ansible-junos-stdlib" title="Ansible Junos Stdlib Module">junos-stdlib</a> Ansible module is going to allow most of the
+magic.  To use it, you&rsquo;ll need <em>junos-eznc</em> and <em>Ansible</em>.</p>
+
+<blockquote><p>There are links inline the first time something is mentioned.  A
+credits list appears at the end of this document, collecting
+everything in one place.</p></blockquote>
+
+<p>It requires some basic configuration, but it&rsquo;s all done with <a href="http://www.yaml.org/" title="YAML Ain't Markup Language">YAML</a>
+files, which is more like reading text than code or configuration.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/ansible-network-automation/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    
+  </div>
+</div>
+<!-- <aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside> &#8211;>
+
+    </div>
+  </div>
+  <!-- <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tyler Christiansen -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer> -->
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'supertylerc';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+  
+  <aside class="sidebar">
+    
+      <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+    
+  </aside>
+  
+</body>
+
+
+</html>
