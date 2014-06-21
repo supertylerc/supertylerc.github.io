@@ -5,12 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Tyler's Technical Retreat</title>
+  <title>Blog Archive - Tyler's Technical Retreat</title>
   <meta name="author" content="Tyler Christiansen">
 
   
-  <meta name="description" content="Introductions Ansible Ansible is an agentless automation framework. It typically relies
-on a Python shell on its remote systems; some modules, &hellip;">
+  <meta name="description" content=" Blog Archive 2014 Ansible Network Automation
+Jun 20 2014 Ansible, Automation, Juniper Tweet ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +19,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://yangweilim.com">
+  <link rel="canonical" href="http://yangweilim.com/archives">
   <link href="/favicon.ico" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Tyler's Technical Retreat" type="application/atom+xml">
@@ -66,97 +66,52 @@ on a Python shell on its remote systems; some modules, &hellip;">
   
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article role="article">
   
-  
-  
-    <article>
-      
   <header>
-    
-      <h1 class="entry-title"><a href="/blog/ansible-network-automation/">Ansible Network Automation</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-20T19:59:19-07:00" pubdate data-updated="true">Jun 20<span>th</span>, 2014</time>
-        
-      </p>
+    <h1 class="entry-title">Blog Archive</h1>
     
   </header>
+  
+  <div id="blog-archives">
 
 
-  <div class="entry-content"><h1>Introductions</h1>
 
-<h2>Ansible</h2>
+  
+  <h2>2014</h2>
 
-<p><a href="http://www.ansible.com/home" title="Ansible is Simple IT Automation">Ansible</a> is an agentless automation framework.  It typically relies
-on a <a href="https://www.python.org/" title="Welcome to Python">Python</a> shell on its remote systems; some modules, however,
-allow Ansible to behave differently.</p>
+<article>
+  
+<h1><a href="/blog/ansible-network-automation/">Ansible Network Automation</a></h1>
+<time datetime="2014-06-20T19:59:19-07:00" pubdate><span class='month'>Jun</span> <span class='day'>20</span> <span class='year'>2014</span></time>
 
-<blockquote><p>An <a href="http://docs.ansible.com/modules.html" title="About Modules">Ansible Module</a> is a behavior that Ansible executes.  This can
-be to copy files, install Debian packages, or log into routers.</p></blockquote>
+  <span class="categories"> <span><i class="fa fa-tag icon-color"></i> </span><a class='category' href='/blog/categories/ansible/'>Ansible</a>, <a class='category' href='/blog/categories/automation/'>Automation</a>, <a class='category' href='/blog/categories/juniper/'>Juniper</a></span>
 
-<p>You are encouraged to read the <a href="http://docs.ansible.com/" title="Ansible Documentation">Docs</a>, but we&rsquo;ll cover most of what
-you need to know to start automating your Juniper Networks equipment in
-this post.</p>
 
-<h2>junos-eznc</h2>
-
-<p><a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc on Github">junos-eznc</a> is a Python module from <a href="http://www.juniper.net/us/en/" title="Juniper Networks">Juniper Networks</a> (and, more
-specifically, <a href="http://workflowsherpas.com/" title="Jeremy Schulman">Jeremy Schulman</a>, <a href="https://twitter.com/shermdog01" title="Rick Sherman on Twitter">Rick Sherman</a>, and <a href="https://github.com/vnitinv" title="Nitin Kumar at Github">Nitin
-Kumar</a>).  It uses an ssh transport to communicate <a href="http://en.wikipedia.org/wiki/NETCONF" title="NETCONF">NETCONF</a>
-commands, parse data and transform it to proper XML, and retrieve XML
-for parsing and transformation into a more meaningful structure.</p>
-
-<blockquote><p>I strongly recommend that you use junos-eznc on devices running Junos
-11.4 and up <em>only</em>.  You can see reasons for this in issues <a href="https://github.com/Juniper/py-junos-eznc/issues/253" title="Error When Pushing New Config (set format, pre-Junos 11.4)">#253</a>
-and <a href="https://github.com/Juniper/py-junos-eznc/issues/255" title="Only Delete Statements Are Pushed">#255</a>.</p></blockquote>
-
-<p>The <em>junos-eznc</em> module is very easy to use&mdash;but we&rsquo;re not going to be
-using it (directly) for our automation.  You only need to know of its
-existence because it&rsquo;s a prerequisite for the <em>Ansible</em> module that
-we&rsquo;ll be using.</p>
-
-<h2>junos-stdlib</h2>
-
-<p>The <a href="https://github.com/Juniper/ansible-junos-stdlib" title="Ansible Junos Stdlib Module">junos-stdlib</a> Ansible module is going to allow most of the
-magic.  To use it, you&rsquo;ll need <em>junos-eznc</em> and <em>Ansible</em>.</p>
-
-<blockquote><p>There are links inline the first time something is mentioned.  A
-credits list appears at the end of this document, collecting
-everything in one place.</p></blockquote>
-
-<p>It requires some basic configuration, but it&rsquo;s all done with <a href="http://www.yaml.org/" title="YAML Ain't Markup Language">YAML</a>
-files, which is more like reading text than code or configuration.</p>
+</article>
 
 </div>
-  
+
   
     <footer>
-      <a rel="full-article" href="/blog/ansible-network-automation/">Continue &rarr;</a>
+      
+      
+        <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://yangweilim.com/archives/index.html" data-via="oss_stack" data-counturl="http://yangweilim.com/archives/index.html" >Tweet</a>
+  
+  
+  
+</div>
+
+      
     </footer>
   
+</article>
 
-
-    </article>
-  
-  <div class="pagination">
-    
-    
-  </div>
 </div>
+
 
     </div>
   </div>
