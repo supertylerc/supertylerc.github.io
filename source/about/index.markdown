@@ -32,22 +32,23 @@ professional life.
 
 #### Toolkit
 
-=Asparagus UI and API=
-    Temporarily add users to an LDAP group.  Makes SOX compliance easier
-    and increases security by essentially being a self-audit.
+Asparagus UI and API
+: Temporarily add users to an LDAP group.  Makes SOX compliance easier
+: and increases security by essentially being a self-audit.  Written
+: in Ruby/Rails and AngularJS.
 
-=jping=
-    Original Perl script parsed Juniper configuration and pinged all
-    subnets in all routing instances with an option to ignore a defined
-    regex of routing instances.  v2 was written in Python, used a
-    NETCONF library, and pulled its list of hosts to check from the ARP
-    table.
+jping
+: Original Perl script parsed Juniper configuration and pinged all
+: subnets in all routing instances with an option to ignore a defined
+: regex of routing instances.  v2 was written in Python, used a
+: NETCONF library, and pulled its list of hosts to check from the ARP
+: table.
 
-=LibreNMS=
-    I was fortunate enough to help jumpstart LibreNMS.  I wrote some of
-    the scripts that brought it into a working state, including the
-    initial database migration script.  I wrote instructions for
-    installing and for a time helped manage commits.
+LibreNMS
+: I was fortunate enough to help jumpstart LibreNMS.  I wrote some of
+: the scripts that brought it into a working state, including the
+: initial database migration script.  I wrote instructions for
+: installing and for a time helped manage commits.
 
 A decent bit of my toolkit is featured on my GitHub, but some of it
 isn't.  Some of it is so unique to a company that it made no sense to
@@ -75,13 +76,11 @@ BGP, F5 LTM ADCs, and L3 extended to the TOR.
 #### Network Hardware
 
 * Redback/Ericsson:
-
   * SE1800
   * SE400
   * SE800
 
 * Cisco:
-
   * 76xx
   * 720x
   * CRS-3
@@ -90,7 +89,6 @@ BGP, F5 LTM ADCs, and L3 extended to the TOR.
   * ME3400
 
 * Juniper:
-
   * MX80/240/480/960
   * SRX100/550/1400
   * EX2200/3300/4200/4300/4500/4550
@@ -98,50 +96,41 @@ BGP, F5 LTM ADCs, and L3 extended to the TOR.
   * MAG 2600
 
 * F5:
-
   * 4200v
   * 3900
   * 7200v
 
 * Alcatel-Lucent:
-
   * 7450
   * 7210
   * 7750
 
 * NetApp:
-
     * FAS
     * E-Series
 
 #### Network Software
 
 * Redback/Ericcson:
-
   * SeOS
 
 * Cisco:
-
   * IOS 12/15
   * IOS-XR
   * NX-OS
 
 * Juniper:
-
   * ScreenOS 6.x
   * Junos
   * IVE
 
 * Alcatel-Lucent
-
   * TiMOS
 
 * F5:
-
   * Big IP 11.x
 
 * NetApp:
-
   * cDOT
 
 #### Network Protocols
@@ -150,7 +139,6 @@ BGP, F5 LTM ADCs, and L3 extended to the TOR.
 * IS-IS
 * BGP/MBGP
 * MPLS
-
   * L3VPN
   * L2VPN (Martini)
 
