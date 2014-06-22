@@ -111,3 +111,28 @@ hgroup {
 	margin: 0 auto;
 	width: 380px;
 }
+
+a.imgModal {
+  text-decoration: none;
+  white-space: normal;
+}
+
+a.imgModal > img {
+  margin: 0;
+}
+
+a.imgModal.floatLeft {
+  float: left;
+}
+
+a.imgModal.floatLeft > img {
+  margin: 0 15px 15px 0;
+}
+
+a.imgModal.floatRight {
+  float: right;
+}
+
+a.imgModal.floatRight > img {
+  margin: 0 0 15px 15px;
+}

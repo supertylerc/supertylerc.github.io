@@ -73,7 +73,7 @@ mkdir git && cd $_
 git clone https://github.com/ansible/ansible.git
 source ./ansible/hacking/env-setup
 echo "source ~/git/ansible/hacking/env-setup" >> ~/.zshrc
-``` bash
+```
 
 > I make a few assumptions about your environment in the above example
 > and in future examples.  First, I assume you're using [zsh][15].  If
@@ -88,7 +88,7 @@ the following commands:
 
 ``` bash
 sudo pip install git+https://github.com/Juniper/py-junos-eznc.git
-``` bash
+```
 
 > You _might_ get some annoying messages about libxml or libxslt.  For
 > Ubuntu, you'll want to run the command: `sudo apt-get install
@@ -103,7 +103,7 @@ cd ~/git
 git clone https://github.com/Juniper/ansible-junos-stdlib.git
 source ./ansible-junos-stdlib/env-setup
 echo "source ~/git/ansible-junos-stdlib/env-setup" >> ~/.zshrc
-``` bash
+```
 
 ## Directory Setup
 
@@ -118,7 +118,7 @@ cd ansible
 touch hosts
 mkdir -p host_vars/ logs/ roles/common/{tasks,templates,vars}
 cp ~/src/ansible/examples/ansible.cfg .
-``` bash
+```
 
 > This is just to get you started.  In production, you would have a
 > separate user for _Ansible_.  You would _not_ run it as yourself.
@@ -138,13 +138,13 @@ _Ansible_--don't require a password):
 
 ``` bash
 ssh-keygen -t rsa -b 8192
-``` bash
+```
 
 Just follow the instructions and then:
 
 ``` bash
 pbcopy < ~/.ssh/id_rsa.pub
-``` bash
+```
 
 to copy it to your clipboard.
 
@@ -213,7 +213,7 @@ system {
     }
   }
 }
-``` bash
+```
 
 > Be careful--this deletes previous configurations.  If your username
 > already exists and you delete its authentication parameters, you
@@ -241,7 +241,7 @@ though:
 authentication {
   ssh-rsa "{{ passwords.key }}";
 }
-``` bash
+```
 
 This stanza (and others like it) tells the _template_ module to subsitute
 the variable (a human-readable container for a value) for the value it
@@ -252,7 +252,7 @@ will replace `{{ passwords.key }}` with our SSH key from earlier.
 {% if users -%}
   ...
 {% endif %}
-``` bash
+```
 
 Everything between these two statements only gets executed if you've
 actually defined a variable called `users`.  If you haven't, everything
@@ -263,7 +263,7 @@ deployment didn't define specific users, and I ran into issues.
 {% for user in users -%}
   ...
 {% endfor %}
-``` bash
+```
 
 This line--and others like it--are a way to loop through the `users`
 variable, which is a [list][24] of [dicts][24].  Each item is
@@ -292,7 +292,7 @@ users:
     class: ADMIN
     ssh_keys:
       - YOUR_KEY_HERE
-``` bash
+```
 
 > PLEASE be sure you replace the MD5 hashes above with your actual MD5
 > hashes.  This is a safe way to maintain passwords in Ansible
@@ -318,7 +318,7 @@ template (or anything else).  To do this, add the following to
   tags:
     - common
     - authentication
-``` bash
+```
 
 This should be pretty readable.  We name this task `Login
 Configuration`, and we tell it that it's going to use the `template`
@@ -380,7 +380,7 @@ Now edit `/etc/ansible/router_auth.yml` and add the following to it:
       file: path=/tmp/{{ inventory_hostname }}.d state=absent
     - name: Destroying Compiled Configuration
       file: path=/tmp/{{ inventory_hostname }}.conf state=absent
-``` bash
+```
 
 This playbook defines a number of plays.  First, it sets us up for
 success by ensuring the directory `/tmp/{{ inventory_hostname }}.d/`
@@ -417,7 +417,7 @@ details, but for our simple purposes, just add the following to
 ``` bash
 [routers]
 sw01.example.com
-``` bash
+```
 
 > Obviously, replace with the DNS name of your lab router or switch.
 
@@ -425,15 +425,61 @@ Now, you're ready.  Run the following command:
 
 ``` bash
 ansible-playbook /etc/ansible/router_auth.yml
-``` bash
+```
 
 You should be met with success as in the following example:
 
 ``` bash
-``` bash
+╭─tchristiansen52 at us160536 in ~ using ‹ruby-2.1.1› 14-06-21 - 11:43:42
+╰─○ ansible-playbook /etc/ansible/router_auth.yml
 
-> My output is slightly different as I'm using a slightly more involved
-> playbook.
+PLAY [Setting Up]
+*************************************************************
+
+TASK: [Building Temporary Directory]
+******************************************
+changed: [cs01.hq.example.com]
+
+TASK: [Building Log Directory]
+************************************************
+ok: [cs01.hq.example.com]
+
+PLAY [Configuration Deployment]
+***********************************************
+
+TASK: [net_auth | Login Configuration]
+****************************************
+changed: [cs01.hq.example.com]
+
+TASK: [Assembling Configuration]
+**********************************************
+changed: [cs01.hq.example.com]
+
+TASK: [Deploying Configuration]
+***********************************************
+changed: [cs01.hq.example.com]
+
+PLAY [Destroying Setup]
+*******************************************************
+
+TASK: [Destroying Temporary Directory]
+****************************************
+changed: [cs01.hq.example.com]
+
+TASK: [Destroying Compiled Configuration]
+*************************************
+changed: [cs01.hq.example.com]
+
+PLAY RECAP
+********************************************************************
+cs01.hq.example.com            : ok=7    changed=6    unreachable=0 failed=0
+
+╭─tchristiansen52 at us160536 in ~ using ‹ruby-2.1.1› 14-06-21 - 11:43:42
+╰─○
+```
+
+> My output is slightly different as I'm testing a production
+> deployment.
 
 # Summary
 
