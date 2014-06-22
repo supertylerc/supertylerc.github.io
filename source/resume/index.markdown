@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "about"
+title: "resume"
 date: 2014-06-20 23:04
 comments: true
 sharing: true
