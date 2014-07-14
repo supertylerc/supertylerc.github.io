@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: F5 | Tyler's Technical Retreat]]></title>
+  <link href="http://oss-stack.io//blog/categories/f5/atom.xml" rel="self"/>
+  <link href="http://oss-stack.io//"/>
+  <updated>2014-06-21T23:42:24-07:00</updated>
+  <id>http://oss-stack.io//</id>
+  <author>
+    <name><![CDATA[Tyler Christiansen]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Snippet: F5 sFlow Configuration]]></title>
+    <link href="http://oss-stack.io//blog/f5-sflow-configuration/"/>
+    <updated>2014-02-25T21:18:23-08:00</updated>
+    <id>http://oss-stack.io//blog/f5-sflow-configuration</id>
+    <content type="html"><![CDATA[<h1>F5 sFlow Configuration</h1>
+
+<p>In the first of a new series of snippets, we cover configuring an sFlow
+collector on an F5 Networks Big IP LTM 7200v!</p>
+
+<blockquote><p>While the target platform is an LTM 7200v, this procedure should work
+on any F5 Networks platform running Big IP v11 or greater.  It may
+work with other versions of Big IP if they support the <code>tmsh</code>
+interface.</p></blockquote>
+
+<h2>Necessary Information</h2>
+
+<p>Before we get started, let&rsquo;s just cover some necessary information.
+First, I assume you have a collector somewhere capable of receiving
+sFlow data and that you know how to configure it properly.  In the
+examples below, my collector has the IP address <code>192.168.0.1</code> and
+expects to receive sFlow data on UDP port <code>9993</code>.</p>
+
+<!-- more -->
+
+
+<h2>Configuration</h2>
+
+<blockquote><p>IP addresses and port numbers have been changed to protect the
+innocent.</p></blockquote>
+
+<h3>Snippet</h3>
+
+<p><code>bash
+create receiver nms address 192.168.0.1 port 9993 state enabled
+</code></p>
+
+<h3>Example</h3>
+
+<p>``` bash
+[admin@7200v:Active:In Sync] ~ # tmsh
+admin@(7200v)(cfg-sync In Sync)(Active)(/Common)(tmos)# sys sflow
+admin@(7200v)(cfg-sync In Sync)(Active)(/Common)(tmos.sys.sflow)# create receiver noms address 192.168.0.1 port 9993 state enabled
+admin@(7200v)(cfg-sync In Sync)(Active)(/Common)(tmos.sys.sflow)# list
+sys sflow global-settings http { }
+sys sflow global-settings interface { }
+sys sflow global-settings system { }
+sys sflow global-settings vlan { }
+sys sflow receiver noms {</p>
+
+<pre><code>address 192.168.0.1
+port palace-2
+state enabled
+</code></pre>
+
+<p>}
+admin@(7200v)(cfg-sync In Sync)(Active)(/Common)(tmos.sys.sflow)# quit
+```</p>
+
+<blockquote><p><code>port palace-2</code> is a &ldquo;well-known&rdquo; port that the F5 translates to a
+name.  It is port <code>9993</code>.</p></blockquote>
+
+<h3>Verification</h3>
+
+<p><code>bash
+[admin@7200v:Active:In Sync] ~ # tcpdump -c 5 -nni any host 192.168.0.1 and udp and port 9993 -vv
+tcpdump: listening on any, link-type EN10MB (Ethernet), capture size 96 bytes
+20:08:44.683361 IP (tos 0x0, ttl 255, id 54233, offset 0, flags [DF], proto: UDP (17), length: 208) 192.168.0.2.46343 &gt; 192.168.0.1.9993: UDP, length 180
+20:08:44.696217 IP (tos 0x0, ttl 255, id 37826, offset 0, flags [DF], proto: UDP (17), length: 208) 192.168.0.2.39833 &gt; 192.168.0.1.9993: UDP, length 180
+20:08:44.706779 IP (tos 0x0, ttl 255, id 37896, offset 0, flags [DF], proto: UDP (17), length: 228) 192.168.0.2.39833 &gt; 192.168.0.1.9993: UDP, length 200
+20:08:44.720309 IP (tos 0x0, ttl 255, id 37994, offset 0, flags [DF], proto: UDP (17), length: 272) 192.168.0.2.39833 &gt; 192.168.0.1.9993: UDP, length 244
+20:08:44.731756 IP (tos 0x0, ttl 255, id 38056, offset 0, flags [DF], proto: UDP (17), length: 208) 192.168.0.2.39833 &gt; 192.168.0.1.9993: UDP, length 180
+5 packets captured
+5 packets received by filter
+0 packets dropped by kernel
+[admin@7200v:Active:In Sync] ~ #
+</code></p>
+
+<blockquote><p>In the <code>tcpdump</code> example, feel free to go a step further and add <code>-X</code>
+or <code>-XX</code> to get the actual contents of the packet.  These options were
+left off in the interest of brevity.</p></blockquote>
+
+<h2>THE END!</h2>
+]]></content>
+  </entry>
+  
+</feed>

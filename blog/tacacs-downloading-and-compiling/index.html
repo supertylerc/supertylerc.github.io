@@ -1,0 +1,611 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>TACACS+ [1/3] - Downloading and Compiling - Tyler's Technical Retreat</title>
+  <meta name="author" content="Tyler Christiansen">
+
+  
+  <meta name="description" content="Note: This is Part 1 in a series of posts on TACACS+ installation and
+deployment. There is a special precursor post here that you can read if you
+don &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://oss-stack.io//blog/tacacs-downloading-and-compiling">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Tyler's Technical Retreat" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+  
+
+</head>
+
+<body    class="collapse-sidebar sidebar-footer" >
+  <nav role="navigation">
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:oss-stack.io/" />
+    <input class="search" type="text" name="q" results="0" placeholder="Type to Search"/>
+  </fieldset>
+</form>
+  
+
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/archives">Archives</a></li>
+  <li><a href="/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <header role="banner"><div class='hero'>
+	<div class='wrap'>
+	  <h1><a href="/">Tyler's Technical Retreat</a></h1>
+	  
+	    <h2>Automation&mdash;Integration&mdash;Design&mdash;Programming</h2>
+	  
+	</div>
+</div>
+
+</header>
+  
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">TACACS+ [1/3] - Downloading and Compiling</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-19T11:05:17-08:00" pubdate data-updated="true">Jan 19<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><blockquote><p>Note: This is Part 1 in a series of posts on TACACS+ installation and
+deployment.</p>
+
+<p>There is a special precursor post <a href="/blog/tacacs-introduction-to-aaa/" title="TACACS+ [0/3] - Introduction to AAA">here</a> that you can read if you
+don&rsquo;t have experience with TACACS+.</p>
+
+<p><a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">Part 2</a> is available <a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">here</a>.</p></blockquote>
+
+<p>This post is all about installing TACACS+.  For this guide, we&rsquo;re going
+to use <a href="http://www.shrubbery.net/tac_plus/" title="Shrubbery Networks' TACACS+ Daemon">Shrubbery Networks&#8217; excellent TACACS+ daemon</a>.  We&rsquo;re also
+going to start laying the foundations for a centralized configuration
+control system using <code>git</code>.  Finally, we&rsquo;ll write a few scripts to wrap
+the daemon up nice and tight to make it a bit easier to manage.</p>
+
+<h2>Installing the Daemon</h2>
+
+<p>There may or may not be a package available for the Shrubbery TACACS+
+daemon, but for a variety of reasons, it&rsquo;s best to build the most recent
+version from source.  This will ensure you get the best new features and
+bug fixes.  Plus, building the package is pretty easy.</p>
+
+<blockquote><p>Note: This post&rsquo;s examples are all from Ubuntu 12.04, but the concepts
+apply to any Linux distribution or BSD derivative.</p></blockquote>
+
+<h3>Prerequisites</h3>
+
+<p>You&rsquo;ll need a few things to get going.  Here&rsquo;s a list:</p>
+
+<ul>
+<li>Root on the target Linux or BSD system</li>
+<li>Essential compilation tools</li>
+<li><code>tcp_wrappers</code> library</li>
+</ul>
+
+
+<p>Here&rsquo;s a quick line to get everything you need from an Ubuntu 12.04
+system for which you have the ability to run all commands under <code>sudo</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get update
+</span><span class='line'>sudo apt-get upgrade -y
+</span><span class='line'>sudo apt-get install -y vim curl build-essential flex bison tcpd
+</span><span class='line'>libwrap0-dev git
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!-- more -->
+
+
+<h3>Get the Source!</h3>
+
+<p>Getting the source code for the Shrubbery Networks distribution of
+TACACS+ is pretty simple.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> /usr/src
+</span><span class='line'>sudo curl -O
+</span><span class='line'>ftp://ftp.shrubbery.net/pub/tac_plus/tacacs+-F4.0.4.27a.tar.gz
+</span><span class='line'>sudo tar xzf tacacs+-F4.0.4.27a.tar.gz
+</span><span class='line'>rm tacacs+-F4.0.4.27a.tar.gz
+</span><span class='line'>sudo chown -R <span class="k">$(</span>whoami<span class="k">)</span> tacacs+-F4.0.4.27a
+</span><span class='line'><span class="nb">cd </span>tacacs+-F4.0.4.27a
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>Note: As of this post (17 January 2014), F4.0.4.27a is the most recent
+version of the Shrubbery Networks TACACS+ daemon.  You&rsquo;ll probably
+want to <a href="ftp://ftp.shrubbery.net/pub/tac_plus" title="Shrubbery Networks TACACS+ Daemon FTP">look here</a> to ensure you&rsquo;re getting the most recent
+version.</p></blockquote>
+
+<h3>If You Build It&hellip;</h3>
+
+<p>The next part is cake.  We&rsquo;ll create the directory where the daemon will
+live, configure the environment, compile the source, and install the
+final result.  We&rsquo;ll create the configuration directory, too, but hold
+off on populating it for now.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo mkdir -p /opt/tac_plus
+</span><span class='line'>./configure --prefix<span class="o">=</span>/opt/tac_plus
+</span><span class='line'>make
+</span><span class='line'>sudo make install
+</span><span class='line'>sudo mkdir -p /opt/tac_plus/etc
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>Note: you shouldn&rsquo;t encounter any errors, but if you do and need a
+hand, feel free to
+<a href="mailto:tyler@oss-stack.io?Subject=TACACS%20Installation%20Issues">
+e-mail me: tyler (at) oss-stack [dot] io.</a></p></blockquote>
+
+<h3>Wrap It Up</h3>
+
+<p>Next, open up <code>/etc/init/tac_plus.conf</code> with <code>vim</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vim /etc/init/tac_plus.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now enter the below into the file.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># TACACS+ Upstart Job</span>
+</span><span class='line'>
+</span><span class='line'>description <span class="s2">&quot;Shrubbery Networks tac_plus Daemon&quot;</span>
+</span><span class='line'>author <span class="s2">&quot;Tyler Christiansen &lt;tyler@oss-stack.io&gt;&quot;</span>
+</span><span class='line'>
+</span><span class='line'>start on startup
+</span><span class='line'>stop on shutdown
+</span><span class='line'>respawn
+</span><span class='line'>expect daemon
+</span><span class='line'><span class="nb">exec</span> /opt/tac_plus/bin/tac_plus -C /opt/tac_plus/etc/tac_plus.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>Note: if you&rsquo;re not familiar with <code>vim</code>, just press <code>i</code> to enter
+<em>insert</em> mode, paste the above contents, press the <code>[escape]</code> key, and
+type <code>:wq</code>.</p></blockquote>
+
+<p>So what does the above script do?  Well, when your system starts, the
+<code>tac_plus</code> daemon starts.  When you shut your system down, <code>tac_plus</code>
+stops.  The service will restart automatically if it crashes, and
+upstart should expect the service to daemonize itself.  This line
+(<code>expect daemon</code>) is really the key to the <code>upstart</code> script working
+properly: without it, <code>upstart</code> will lose track of the process, and you
+won&rsquo;t be able to get status of the daemon, stop it, restart it, or
+automatically restart when it crashes.</p>
+
+<h3>State of the Daemon <small>Take a break!</small></h3>
+
+<p>So far, we&rsquo;ve installed the Shrubbery Networks <code>tac_plus</code> daemon in a
+custom directory and written an <code>upstart</code> script to control it.  Doesn&rsquo;t
+sound like much, does it?  Take a quick break&mdash;basic configuration is
+next!</p>
+
+<h2>Configuration</h2>
+
+<p>We&rsquo;re going to do something a bit different here.  This is in
+preparation for a centralized configuration repository that tracks
+changes.  This is why you needed to install <code>git</code> earlier, even though
+it isn&rsquo;t required by <code>tac_plus</code>.  We&rsquo;re going to create a new directory
+structure under <code>/opt</code>, initialize a <code>git</code> repository, and create the
+initial configuration file that we&rsquo;ll build on in the next two posts.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo mkdir -p /opt/oss-conf/tac_plus
+</span><span class='line'>sudo chown -R <span class="k">$(</span>whoami<span class="k">)</span> /opt/oss-conf
+</span><span class='line'><span class="nb">cd</span> /opt/oss-conf
+</span><span class='line'>git init
+</span><span class='line'>vim tac_plus/tac_plus.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Recall the <code>vim</code> crash-course above and enter the below contents into
+your <code>tac_plus.conf</code> file:</p>
+
+<blockquote><p>Note: Don&rsquo;t worry too much about what the below information actually
+means&mdash;we&rsquo;ll cover it as we go through the next two posts.</p></blockquote>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">key</span> <span class="o">=</span> <span class="s2">&quot;!i-l0v3_t4C4c5#&quot;</span>
+</span><span class='line'>accounting <span class="nv">file</span> <span class="o">=</span> /var/log/tac_plus
+</span><span class='line'><span class="nv">group</span> <span class="o">=</span> engineers <span class="o">{</span>
+</span><span class='line'>  default <span class="nv">service</span> <span class="o">=</span> permit
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="nv">group</span> <span class="o">=</span> noc <span class="o">{</span>
+</span><span class='line'>  default <span class="nv">service</span> <span class="o">=</span> permit
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'> <span class="nv">user</span> <span class="o">=</span> tyler <span class="o">{</span>
+</span><span class='line'>  <span class="nv">member</span> <span class="o">=</span> engineers
+</span><span class='line'>  <span class="nv">login</span> <span class="o">=</span> des <span class="nv">$6$nKlz6YCf5d$5jYg3kSMcIpnUP74XOreUiTDlgyFFxP5BivOH4uRl5pc8idyToRtJoe7b</span>.D.CnhGR//R8jmkkW2N4/u9L3l7M1
+</span><span class='line'>  <span class="nb">enable</span> <span class="o">=</span> des des <span class="nv">$6$nKlz6YCf5d$5jYg3kSMcIpnUP74XOreUiTDlgyFFxP5BivOH4uRl5pc8idyToRtJoe7b</span>.D.CnhGR//R8jmkkW2N4/u9L3l7M1
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="nv">user</span> <span class="o">=</span> jim <span class="o">{</span>
+</span><span class='line'>  <span class="nv">member</span> <span class="o">=</span> noc
+</span><span class='line'>  <span class="nv">login</span> <span class="o">=</span> des <span class="nv">$6$QKH4BA</span>/kj<span class="nv">$t</span>/ZI5pXRzRfH0WK/EBye5eZG4twusPTjQPCgF/ZvXD/nfP2f5LqlnY1oVIB1AItoElsSN6quKuf3mrCCkgm7p.
+</span><span class='line'>  <span class="nb">enable</span> <span class="o">=</span> des <span class="nv">$6$QKH4BA</span>/kj<span class="nv">$t</span>/ZI5pXRzRfH0WK/EBye5eZG4twusPTjQPCgF/ZvXD/nfP2f5LqlnY1oVIB1AItoElsSN6quKuf3mrCCkgm7p.
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>Note: the password for the user <code>tyler</code> is <code>harbl</code>, and the password
+for the user <code>jim</code> is <code>blah</code>.</p>
+
+<p>Also note that these passwords are encrypted.  They should <em>always</em>
+have <code>des</code> before the hash, and the hash should <em>always</em> indicate the
+hash type.  In this case, it is <code>SHA-512</code>.</p>
+
+<p>To generate a hashed password, use the <code>mkpasswd --method=sha-512</code>
+command.  Note that your own internal policies may require to use a
+different hashing method.</p></blockquote>
+
+<p>Now add the configuration file to the repository and commit it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git add tac_plus/tac_plus.conf
+</span><span class='line'>git commit -m <span class="s1">&#39;add initial tac_plus configuration&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, link this to the file your <code>upstart</code> script expects:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo ln -s /opt/oss-conf/tac_plus/tac_plus.conf
+</span><span class='line'>/opt/tac_plus/etc/tac_plus.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>The End <small>For now&hellip;</small></h2>
+
+<p>A lot of stuff happened.  Downloading, building, installing,
+configuring, revision control, upstart job creation, mini crash
+courses&hellip;whew!</p>
+
+<p>Some of the items that were briefly covered will have their own posts
+(<code>git</code> and Linux basics especially) while others will be expanded upon
+later in the TACACS+ series.</p>
+
+<blockquote><p><a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">Part 2</a> is now available <a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">here</a>.</p></blockquote>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tyler Christiansen</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-19T11:05:17-08:00" pubdate data-updated="true">Jan 19<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/authentication/'>authentication</a>, <a class='category' href='/blog/categories/oss/'>oss</a>, <a class='category' href='/blog/categories/tacacs/'>tacacs</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://oss-stack.io//blog/tacacs-downloading-and-compiling/" data-via="oss_stack" data-counturl="http://oss-stack.io//blog/tacacs-downloading-and-compiling/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/tacacs-introduction-to-aaa/" title="Previous Post: TACACS+ [0/3] - Introduction to AAA">&laquo; TACACS+ [0/3] - Introduction to AAA</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/tacacs-junos-configuration/" title="Next Post: TACACS+ [2/3] - Junos Configuration">TACACS+ [2/3] - Junos Configuration &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+<!-- 
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+ -->
+
+    </div>
+  </div>
+  <!-- <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tyler Christiansen -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer> -->
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'supertylerc';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://oss-stack.io//blog/tacacs-downloading-and-compiling/';
+        var disqus_url = 'http://oss-stack.io//blog/tacacs-downloading-and-compiling/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+  
+  <aside class="sidebar">
+    
+      <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+    
+  </aside>
+  
+</body>
+
+
+</html>

@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Monitoring | Tyler's Technical Retreat]]></title>
+  <link href="http://oss-stack.io//blog/categories/monitoring/atom.xml" rel="self"/>
+  <link href="http://oss-stack.io//"/>
+  <updated>2014-06-21T23:42:24-07:00</updated>
+  <id>http://oss-stack.io//</id>
+  <author>
+    <name><![CDATA[Tyler Christiansen]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Exploring Junos Traffic Monitoring]]></title>
+    <link href="http://oss-stack.io//blog/exploring-junos-traffic-monitoring/"/>
+    <updated>2014-02-27T21:20:40-08:00</updated>
+    <id>http://oss-stack.io//blog/exploring-junos-traffic-monitoring</id>
+    <content type="html"><![CDATA[<p>While preparing for another post, I ran into an interesting Junos
+&ldquo;feature.&rdquo;  First, the problem statement: I needed to monitor traffic
+for all interfaces simultaneously for a specific set of conditions.  In
+Junos, this is not possible.  Let&rsquo;s explore this below.</p>
+
+<h2>The Attempt</h2>
+
+<p>Below, I&rsquo;ll step through the various attempts I made to monitor all
+traffic on the device.</p>
+
+<p>First, I made the attempt from the Junos shell with the <code>monitor
+traffic</code> command.  I utilized the <code>matching</code> knob, which takes a
+<code>tcpdump</code>-like filter expression as an argument.</p>
+
+<p>``` bash
+tylerc@lab01> monitor traffic matching &ldquo;host 192.168.0.1 &amp;&amp; udp &amp;&amp; port 9997&rdquo;
+verbose output suppressed, use <detail> or <extensive> for full protocol decode
+Address resolution is ON. Use &lt;no-resolve> to avoid any reverse lookup delay.
+Address resolution timeout is 4s.
+Listening on fxp0, capture size 96 bytes</p>
+
+<p>^C
+4 packets received by filter
+0 packets dropped by kernel</p>
+
+<p>{master:0}
+```</p>
+
+<!-- more -->
+
+
+<p>After I noted that this listens on the management interface (<code>fxp0</code> in
+this case) by default, I proceeded to drop to the shell and attempt to
+utilize <code>tcpdump</code> directly.</p>
+
+<p><code>bash
+tylerc@lab01&gt; start shell
+% tcpdump -n host 192.168.0.1 and udp and port 9997
+(no devices found) /dev/bpf0: Permission denied
+% tcpdump
+(no devices found) /dev/bpf0: Permission denied
+%
+</code></p>
+
+<p>After receiving a &ldquo;<strong>Permission denied</strong>&rdquo; error, I made myself the root
+user and tried using <code>tcpdump</code> again.</p>
+
+<p>``` bash
+% whoami
+tylerc
+% su
+Password:
+root@core:RE:0% whoami
+root
+root@lab01:RE:0% tcpdump -n host 192.168.0.1 and udp and port 9997
+verbose output suppressed, use <detail> or <extensive> for full protocol decode
+Address resolution is OFF.
+Listening on fxp0, capture size 96 bytes</p>
+
+<p>^C
+1 packets received by filter
+0 packets dropped by kernel
+root@lab01:RE:0% exit
+exit
+% exit
+exit</p>
+
+<p>{master:0}
+tylerc@lab01>
+```</p>
+
+<blockquote><p>The <code>monitor traffic</code> operational command utilizes <code>tcpdump</code> under the
+hood.  The attempt here was to see if Junos might have abstracted
+certain capabilities.</p></blockquote>
+
+<p>As you can see above, there is no way to listen to all interfaces.
+After some research, I&rsquo;ve discovered that this is a BSD limitation.
+There is no work around.</p>
+
+<blockquote><p>You can read about it
+<a href="https://www.mail-archive.com/tcpdump-workers@lists.tcpdump.org/msg03923.html">here</a>.
+Although dated, the post is accurate.</p></blockquote>
+
+<h2>The Solution</h2>
+
+<p>The solution is actually pretty obvious: discover the outbound interface
+and monitor traffic for it.  See the example below for determining the
+route to our destination (<strong>192.168.0.1</strong>) and then listening for the
+same details.</p>
+
+<p>``` bash
+tylerc@lab01> show route 192.168.0.1</p>
+
+<p>inet.0: 477454 destinations, 952821 routes (477454 active, 0 holddown, 0 hidden)
++ = Active Route, &ndash; = Last Active, * = Both</p>
+
+<p>192.168.0.0/16      *[Static/5] 22w1d 06:04:53</p>
+
+<pre><code>                &gt; to 192.168.1.1 via fxp0.0
+</code></pre>
+
+<p>tylerc@lab01> monitor traffic matching &ldquo;host 192.168.0.1 &amp;&amp; udp &amp;&amp; port 9997&rdquo; count 5 no-resolve
+verbose output suppressed, use <detail> or <extensive> for full protocol decode
+Address resolution is OFF.
+Listening on fxp0, capture size 96 bytes</p>
+
+<p>08:20:28.123704 Out IP truncated-ip &ndash; 1384 bytes missing! 192.168.1.2.51925 > 192.168.0.1.9997: UDP, length 1416
+08:20:28.123820 Out IP truncated-ip &ndash; 1384 bytes missing! 192.168.1.2.51925 > 192.168.0.1.9997: UDP, length 1416
+08:20:28.123936 Out IP truncated-ip &ndash; 1384 bytes missing! 192.168.1.2.51925 > 192.168.0.1.9997: UDP, length 1416
+08:20:28.124048 Out IP truncated-ip &ndash; 1384 bytes missing! 192.168.1.2.51925 > 192.168.0.1.9997: UDP, length 1416
+08:20:28.124159 Out IP truncated-ip &ndash; 1384 bytes missing! 192.168.1.2.51925 > 192.168.0.1.9997: UDP, length 1416</p>
+
+<p>tylerc@lab01>
+```</p>
+
+<p>Finally, you can see the output I was after.  Unfortunately, listening
+on all interfaces isn&rsquo;t possible.  A combination of <code>show route
+&lt;address|network&gt;</code> and `show route forwarding-table destination</p>
+
+<p><address>` will show you the appropriate information, though!</p>
+
+<blockquote><p>In this particular example, the route I was interested in just
+happened to be via the management interface (the default for <code>monitor
+traffic</code>.  For other interesting data that you need to capture,
+however, this probably won&rsquo;t be the case&mdash;that&rsquo;s why the <code>show route</code>
+output is there.  Furthermore, you&rsquo;ll probably want to do a <code>show
+route forwarding-table destination &lt;address&gt;</code> in order to ensure
+you&rsquo;re monitoring the appropriate interface.</p></blockquote>
+
+<h1>A Word of Caution</h1>
+
+<p>I originally attempted this on an EX series switch, but there appears to
+be a bug.  The switch <em>never</em> captured any output for the port in which
+I was interested, but I was able to confirm that it was sending the data
+by monitoring the other side.  A case with JTAC will be opened to
+explore that particular issue closer.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Snippet: F5 sFlow Configuration]]></title>
+    <link href="http://oss-stack.io//blog/f5-sflow-configuration/"/>
+    <updated>2014-02-25T21:18:23-08:00</updated>
+    <id>http://oss-stack.io//blog/f5-sflow-configuration</id>
+    <content type="html"><![CDATA[<h1>F5 sFlow Configuration</h1>
+
+<p>In the first of a new series of snippets, we cover configuring an sFlow
+collector on an F5 Networks Big IP LTM 7200v!</p>
+
+<blockquote><p>While the target platform is an LTM 7200v, this procedure should work
+on any F5 Networks platform running Big IP v11 or greater.  It may
+work with other versions of Big IP if they support the <code>tmsh</code>
+interface.</p></blockquote>
+
+<h2>Necessary Information</h2>
+
+<p>Before we get started, let&rsquo;s just cover some necessary information.
+First, I assume you have a collector somewhere capable of receiving
+sFlow data and that you know how to configure it properly.  In the
+examples below, my collector has the IP address <code>192.168.0.1</code> and
+expects to receive sFlow data on UDP port <code>9993</code>.</p>
+
+<!-- more -->
+
+
+<h2>Configuration</h2>
+
+<blockquote><p>IP addresses and port numbers have been changed to protect the
+innocent.</p></blockquote>
+
+<h3>Snippet</h3>
+
+<p><code>bash
+create receiver nms address 192.168.0.1 port 9993 state enabled
+</code></p>
+
+<h3>Example</h3>
+
+<p>``` bash
+[admin@7200v:Active:In Sync] ~ # tmsh
+admin@(7200v)(cfg-sync In Sync)(Active)(/Common)(tmos)# sys sflow
+admin@(7200v)(cfg-sync In Sync)(Active)(/Common)(tmos.sys.sflow)# create receiver noms address 192.168.0.1 port 9993 state enabled
+admin@(7200v)(cfg-sync In Sync)(Active)(/Common)(tmos.sys.sflow)# list
+sys sflow global-settings http { }
+sys sflow global-settings interface { }
+sys sflow global-settings system { }
+sys sflow global-settings vlan { }
+sys sflow receiver noms {</p>
+
+<pre><code>address 192.168.0.1
+port palace-2
+state enabled
+</code></pre>
+
+<p>}
+admin@(7200v)(cfg-sync In Sync)(Active)(/Common)(tmos.sys.sflow)# quit
+```</p>
+
+<blockquote><p><code>port palace-2</code> is a &ldquo;well-known&rdquo; port that the F5 translates to a
+name.  It is port <code>9993</code>.</p></blockquote>
+
+<h3>Verification</h3>
+
+<p><code>bash
+[admin@7200v:Active:In Sync] ~ # tcpdump -c 5 -nni any host 192.168.0.1 and udp and port 9993 -vv
+tcpdump: listening on any, link-type EN10MB (Ethernet), capture size 96 bytes
+20:08:44.683361 IP (tos 0x0, ttl 255, id 54233, offset 0, flags [DF], proto: UDP (17), length: 208) 192.168.0.2.46343 &gt; 192.168.0.1.9993: UDP, length 180
+20:08:44.696217 IP (tos 0x0, ttl 255, id 37826, offset 0, flags [DF], proto: UDP (17), length: 208) 192.168.0.2.39833 &gt; 192.168.0.1.9993: UDP, length 180
+20:08:44.706779 IP (tos 0x0, ttl 255, id 37896, offset 0, flags [DF], proto: UDP (17), length: 228) 192.168.0.2.39833 &gt; 192.168.0.1.9993: UDP, length 200
+20:08:44.720309 IP (tos 0x0, ttl 255, id 37994, offset 0, flags [DF], proto: UDP (17), length: 272) 192.168.0.2.39833 &gt; 192.168.0.1.9993: UDP, length 244
+20:08:44.731756 IP (tos 0x0, ttl 255, id 38056, offset 0, flags [DF], proto: UDP (17), length: 208) 192.168.0.2.39833 &gt; 192.168.0.1.9993: UDP, length 180
+5 packets captured
+5 packets received by filter
+0 packets dropped by kernel
+[admin@7200v:Active:In Sync] ~ #
+</code></p>
+
+<blockquote><p>In the <code>tcpdump</code> example, feel free to go a step further and add <code>-X</code>
+or <code>-XX</code> to get the actual contents of the packet.  These options were
+left off in the interest of brevity.</p></blockquote>
+
+<h2>THE END!</h2>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Centralized Logging and Live Monitoring]]></title>
+    <link href="http://oss-stack.io//blog/centralized-logging-and-live-monitoring/"/>
+    <updated>2014-01-23T20:23:05-08:00</updated>
+    <id>http://oss-stack.io//blog/centralized-logging-and-live-monitoring</id>
+    <content type="html"><![CDATA[<p>How great would it be to read all of your router logs from one location?
+And to be able to watch the messages scroll by in real time?  This post
+will show you not only how to send your router logs to a centralized
+location, but it will also show you how to organize the logfiles on your
+centralized server.  We&rsquo;ll take it one step further by writing a shell
+script that finds the latest logfiles and prints them out.</p>
+
+<h2>Junos Configuration</h2>
+
+<p>I suspect that you&rsquo;re pretty familiar with Junos and probably already
+know the configuration necessary to send logfiles to a server, but just
+in case, here&rsquo;s the necessary configuration:</p>
+
+<p>``` bash
+tyler@lab01# show | compare
+[edit system]
++   syslog {
++       host 192.168.1.254 {
++           any any;
++           match &ldquo;!(.<em>rancid.</em>)&rdquo;;
++           port 514;
++       }
++   }</p>
+
+<p>{master:0}[edit]
+```</p>
+
+<blockquote><p>You can copy from <code>[edit system]</code> to the line above <code>{master:0}[edit]</code>
+and paste it into your Junos session if you enter the <code>load patch
+terminal</code> command from configuration mode.  Just press <code>^D</code>
+(control+D) to tell the system you&rsquo;ve finished loading the patch.</p></blockquote>
+
+<p>The above will send every log message, except for messages contianing
+the line &ldquo;<strong>rancid</strong>&rdquo;, to the specified server.  I always exclude
+&ldquo;<strong>rancid</strong>&rdquo; from log messages as my RANCID configuration is set to pull
+configs from equipment every five minutes.</p>
+
+<!-- more -->
+
+
+<h2>Server Setup</h2>
+
+<p><code>rsyslog</code> is the tool of choice for this article.  It&rsquo;s worth noting
+that you can likely obtain the same effect with other syslog servers,
+but you&rsquo;ll need to consult the relevant documentation.</p>
+
+<blockquote><p>In this article, the author assumes the use of Ubuntu (and
+specifically uses version 12.04).  Other distributions will work but
+may use different commands, particularly for package installation.</p>
+
+<p>In addition, if your company already uses a syslog server, you should
+continue to use that particular server instead of trying to run
+<code>rsyslog</code> next to it.</p></blockquote>
+
+<h3>Installing and Configuring <small><code>rsyslog</code> to the rescue</small></h3>
+
+<p>To get started, you&rsquo;ll need to install <code>rsyslog</code>.  Do this with the
+following command:</p>
+
+<p><code>bash
+sudo apt-get install -y rsyslog
+</code></p>
+
+<p>Once installed, open <code>/etc/rsyslog.conf</code> with <code>vim</code> and delete whatever
+exists and paste the below configuration:</p>
+
+<p><code>bash
+$ModLoad imuxsock
+$ModLoad imudp
+$ModLoad imklog
+$UDPServerRun 514
+$IncludeConfig /etc/rsyslog.d/*.conf
+</code></p>
+
+<blockquote><p>If you don&rsquo;t know how to use <code>vim</code>, I recommend that you read <a href="/blog/linux-crash-course/" title="Crash Course - Linux">my
+article on the basics of Linux</a>.</p></blockquote>
+
+<p>The above configuration makes it possible to listen on UDP port
+&ldquo;<strong>514</strong>&rdquo;, the port specified in the Junos configuration above, and
+includes configuration files in the <code>/etc/rsyslog.d/</code> directory (if it
+ends in <code>.conf</code>).  This makes it easier to write configuration files in
+a distributed manner.</p>
+
+<p>The next step is to configure a template.  Open up
+<code>/etc/rsyslog.d/10-routers.conf</code> and paste the below configuration:</p>
+
+<p><code>bash
+$template
+DynFile,"/var/log/netops/%HOSTNAME%/%timegenerated:1:10:date-rfc3339%"
+$filegroup noc
+:source , !isequal , "localhost" ?DynFile
+:source , !isequal , "localhost" ~
+</code></p>
+
+<blockquote><p>You may have to change <code>localhost</code> to the hostname portion of your
+monitoring server&rsquo;s FQDN.  For example, my server&rsquo;s FQDN (as revealed
+by the <code>hostname</code> command) is &ldquo;<strong>mon.example.com</strong>&rdquo;.  The hostname
+portion of that is &ldquo;<strong>mon</strong>&rdquo;, so I had to change <code>localhost</code> to <code>mon</code>.</p></blockquote>
+
+<p>The above configuration defines a template, <code>DynFile</code>, and essentially
+says, &ldquo;If the source of the log message I receive is anything EXCEPT
+&rdquo;<strong>localhost</strong>&ldquo;, put a file with the format &rdquo;<strong>YYYY-MM-DD</strong>&ldquo; in a
+directory <code>/var/log/netops/%HOSTNAME%/</code>, where %HOSTNAME% is the name of
+the message source.  When I create the file, it will have a group of
+&rdquo;<strong>noc</strong>&ldquo;.&rdquo;  This results in your logfile being something such as
+&ldquo;<strong>/var/log/netops/lab01/2014-01-21</strong>&rdquo; and being readable by members of
+the &ldquo;<strong>noc</strong>&rdquo; group.</p>
+
+<blockquote><p>The &ldquo;<strong>noc</strong>&rdquo; group does not exist yet.  Neither does the folder
+&ldquo;<strong>/var/log/netops/</strong>&rdquo;.  We&rsquo;re getting to that.</p></blockquote>
+
+<h3>Groups and Folders <small>Final preparations</small></h3>
+
+<p>To get everything up and going, we need to create the &ldquo;<strong>noc</strong>&rdquo; group
+and the &ldquo;<strong>/var/log/netops/</strong>&rdquo; folder.  We&rsquo;ll have to add the
+appropriate permissions for it as well.  This can all be done relatively
+quickly with the following commands:</p>
+
+<p><code>bash
+sudo -s
+mkdir /var/log/netops
+groupadd noc
+usermod -a -G noc tyler
+chgrp -R noc /var/log/netops
+chmod 750 /var/log/netops
+exit
+</code></p>
+
+<blockquote><p>Don&rsquo;t forget to change &ldquo;<strong>tyler</strong>&rdquo; to your username!</p></blockquote>
+
+<h3>Testing</h3>
+
+<p>After a few minutes, you should be able to see logfiles in your new
+directory structure.  See the example output below:</p>
+
+<p>``` bash
+tylerc@mon [02:04:30] [~]
+&ndash;> % ls -R /var/log/netops
+/var/log/netops:
+lab01</p>
+
+<p>/var/log/netops/lab01:
+2014-01-22</p>
+
+<p>tylerc@mon [02:04:56] [~]
+&ndash;> % cat /var/log/netops/lab01/2013-01-22
+2014-01-22T00:00:00+00:00 lab01 /usr/sbin/cron[10072]: (root) CMD (newsyslog)
+2014-01-22T00:00:00+00:00 lab01 /usr/sbin/cron[10073]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T00:00:04+00:00 lab01 sshd[10077]: TAC_AUTHEN_STATUS_GETPASS
+2014-01-22T00:00:04+00:00 lab01 sshd[10077]: TAC_AUTHEN_STATUS_PASS
+2014-01-22T00:00:04+00:00 lab01 sshd[10077]: Accepted password for jim from 192.168.1.50 port 53460 ssh2
+2014-01-22T00:00:05+00:00 lab01 mgd[10081]: UI_AUTH_EVENT: Authenticated user &lsquo;noc&rsquo; at permission level &lsquo;j-ops-ro&rsquo;
+```</p>
+
+<h2>Unified Live Log Messages <small><code>multitail</code> and <code>bash</code> are</h2>
+
+<p>superheroes</small></p>
+
+<p>The magic of an excellent utility called <code>multitail</code> will let you read
+multiple log files at the same time and split them up into multiple
+sub-windows if you so desire.  We&rsquo;ll use a simple bash script to
+automagically pull all of the current router/switch/firewall/etc logs
+in, aggregates them into a single feed and window, and &ldquo;follows&rdquo; them
+(outputs their contents to the screen whenever they&rsquo;re data is written
+to them).  We&rsquo;ll also add the ability to filter this information so that
+you can get only OSPF events or only BGP events or any combination of
+any matched phrase.</p>
+
+<h3>Multitail</h3>
+
+<p>First, grab multitail:</p>
+
+<p><code>bash
+sudo apt-get install -y multitail
+</code></p>
+
+<p>And test it out:</p>
+
+<p><code>bash
+tylerc@mon [02:55:14] [~]
+-&gt; % multitail /var/log/netops/lab01/2014-01-22 -I
+/var/log/netops/lab02/2014-01-22
+2014-01-22T02:31:19+00:00 lab01 xntpd[1223]: NTP Server Unreachable
+2014-01-22T02:31:33+00:00 lab01 last message repeated 7 times
+2014-01-22T02:31:35+00:00 lab01 xntpd[1223]: NTP Server Unreachable
+2014-01-22T02:35:00+00:00 lab01 /usr/sbin/cron[70084]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:40:00+00:00 lab01 /usr/sbin/cron[70088]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:45:00+00:00 lab01 /usr/sbin/cron[70093]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:45:00+00:00 lab01 /usr/sbin/cron[70094]: (root) CMD (newsyslog)
+2014-01-22T02:48:36+00:00 lab01 xntpd[1223]: NTP Server Unreachable
+2014-01-22T02:48:52+00:00 lab01 last message repeated 8 times
+2014-01-22T02:50:00+00:00 lab01 /usr/sbin/cron[70099]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:55:00+00:00 lab01 /usr/sbin/cron[70103]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:55:18+00:00 lab01 mgd[11303]: UI_CHILD_STATUS: Cleanup child '/usr/sbin/lrmuxd', PID 11321, status 0
+2014-01-22T02:55:18+00:00 lab02 mgd[11303]: UI_CHILD_START: Starting child '/usr/sbin/pgmd'
+2014-01-22T02:55:18+00:00 lab02 mgd[11303]: UI_CHILD_STATUS: Cleanup child '/usr/sbin/pgmd', PID 11322, status 0
+2014-01-22T02:55:19+00:00 lab02 mgd[11303]: UI_CHILD_START: Starting child '/usr/sbin/sdxd'
+2014-01-22T02:55:19+00:00 lab02 mgd[11303]: UI_CHILD_STATUS: Cleanup child '/usr/sbin/sdxd', PID 11323, status 0
+2014-01-22T02:55:19+00:00 lab02 mgd[11303]: UI_JUNOSCRIPT_CMD: User 'root' used JUNOScript client to run command 'request-end-session'
+</code></p>
+
+<h3>rtail <small>The <code>bash</code> script</small></h3>
+
+<p>Now, let&rsquo;s create a script called <code>rtail</code> (for &ldquo;<strong>r</strong>outer <strong>tail</strong>&rdquo;)
+and make it do some magic.  First, create a new text file called <code>rtail</code>
+in the <code>/usr/bin/local/</code> directory.</p>
+
+<blockquote><p>For a refresher, the appropriate command would be <code>sudo vim
+/usr/bin/local/rtail</code>.  See <a href="/blog/linux-crash-course/" title="Crash Course - Linux">my crash course on the basics of
+Linux</a> for more details.</p></blockquote>
+
+<p>Enter the following in the file and save it:</p>
+
+<p>``` bash</p>
+
+<h1>!/bin/bash</h1>
+
+<h1>Name    : rtail</h1>
+
+<h1>Author  : Tyler Christiansen</h1>
+
+<h1>Purpose : View current and future log messages for routers</h1>
+
+<h1>Date    : 2013-12-22</h1>
+
+<h1>Variable declarations</h1>
+
+<p>today=$(date +&ldquo;%Y-%m-%d&rdquo;)
+declare -a arg
+delim=&ldquo; -I &rdquo;</p>
+
+<h1>Search for files with today&rsquo;s date in the log dir</h1>
+
+<p>for x in $(find /var/log/netops -name <em>$today</em>); do
+  # Add the full path to the $arg array
+  arg=( &ldquo;${arg[@]}&rdquo; &ldquo;$x&rdquo; )
+done</p>
+
+<h1>Implode the array</h1>
+
+<p>arg=$(printf &ldquo;${delim}%s&rdquo; &ldquo;${arg[@]}&rdquo;)
+arg=${arg:${#delim}}</p>
+
+<h1>If the user didn&rsquo;t supply a filter&hellip;</h1>
+
+<p>if [ $# -eq 0 ]; then
+  # Then call multitail without flags
+  multitail $arg
+else
+  # The user supplied a filter, so call multitail
+  #   with the -E flag
+  multitail -E $1 $arg
+fi
+```</p>
+
+<p>Now, edit permissions to make it owned by the &ldquo;<strong>noc</strong>&rdquo; group and lock
+down execution and read/write:</p>
+
+<p><code>bash
+sudo chgrp noc /usr/local/bin/rtail
+sudo chmod 650 /usr/local/bin/rtail
+</code></p>
+
+<p>Now you should be able to execute the command.  Supply filters you want
+to apply (such as &ldquo;<strong>ospf</strong>&rdquo;) in quotation marks.</p>
+
+<blockquote><p>There is an unfortunate feature missing in <code>multitail</code>: you can&rsquo;t
+perform case-insensitive matches from the command invocation.</p>
+
+<p>However, if you start rtail with no filter expressions, you can easily
+perform case-insenstive searches by pressing the <code>/</code> key and entering
+your text, then selecting the <code>case insensitive</code> option by pressing
+the <code>tab</code> key.</p></blockquote>
+
+<p>Here&rsquo;s an example filtering on &ldquo;<strong>cron</strong>&rdquo;:</p>
+
+<p><code>bash
+2014-01-22T03:53:00+00:00 lab01 /usr/sbin/cron[96133]: (root) CMD (newsyslog)
+2014-01-22T03:50:00+00:00 lab03 /usr/sbin/cron[96593]: (root) CMD (/usr/libexec/atrun)
+2014-09-19T06:25:00+00:00 lab07 /usr/sbin/cron[48036]: (root) CMD (/usr/libexec/atrun)
+2014-09-26T03:01:00+00:00 lab06 /usr/sbin/cron[98802]: (root) CMD (adjkerntz -a)
+2014-09-26T03:40:00+00:00 lab05 /usr/sbin/cron[98767]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T03:53:00+00:00 lab02 /usr/sbin/cron[53337]: (root) CMD (newsyslog)
+2014-01-22T03:50:00+00:00 lab05 /usr/sbin/cron[39761]: (root) CMD (/usr/libexec/atrun)
+2014-09-14T07:50:00+00:00 lab10 /usr/sbin/cron[98647]: (root) CMD (/usr/libexec/atrun)
+2014-09-26T03:35:00+00:00 lab08 /usr/sbin/cron[98022]: (root) CMD (/usr/libexec/atrun)
+2014-09-14T07:55:00+00:00 lab09 /usr/sbin/cron[98586]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T03:50:00+00:00 lab07 /usr/sbin/cron[11694]: (root) CMD (/usr/libexec/atrun)
+2014-09-14T05:05:00+00:00 lab02 /usr/sbin/cron[97612]: (root) CMD (/usr/libexec/atrun)
+2014-09-14T07:55:00+00:00 lab04 /usr/sbin/cron[98640]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T03:54:00+00:00 lab02 /usr/sbin/cron[53340]: (root) CMD (newsyslog)
+2014-01-22T03:54:00+00:00 lab01 /usr/sbin/cron[96136]: (root) CMD (newsyslog)
+</code></p>
+
+<blockquote><p>The output in reality looks a bit different.  The screenshot below
+shows what it would actually look like.  I&rsquo;ve blacked out actual
+hostnames (sorry).</p></blockquote>
+
+<p><div class='bogus-wrapper'><notextile><!-- Image -->
+<a id="img-4" class="imgModal" href="#imgModal-4" data-toggle="modal">
+  <img src="/images/rtail_ex.jpg" width="1407" height="630" title="Click for larger view of rtail example." />
+</a>
+<div style="float: none;"></div>
+
+<!-- Modal -->
+<div class="modal fade" id="imgModal-4" tabindex="-1" role="dialog" aria-labelledby="imgModal-4Label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">rtail example</h4>
+      </div>
+      <div class="modal-body">
+        <img src="/images/rtail_ex.jpg" width="2814" height="1260" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal --></notextile></div></p>
+
+<h2>The End</h2>
+
+<p>You should definitely check out the <a href="http://www.vanheusden.com/multitail/" title="multitail">multitail webpage</a> and read up
+on it a little more.  The bash script above is licensed under the
+<a href="http://opensource.org/licenses/BSD-2-Clause" title="BSD 2-Clause License">FreeBSD 2-Clause License</a>, so feel free to modify&mdash;it has a lot of
+room for improvement!</p>
+]]></content>
+  </entry>
+  
+</feed>

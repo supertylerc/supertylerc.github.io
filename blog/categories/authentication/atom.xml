@@ -1,0 +1,907 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Authentication | Tyler's Technical Retreat]]></title>
+  <link href="http://oss-stack.io//blog/categories/authentication/atom.xml" rel="self"/>
+  <link href="http://oss-stack.io//"/>
+  <updated>2014-06-21T23:42:24-07:00</updated>
+  <id>http://oss-stack.io//</id>
+  <author>
+    <name><![CDATA[Tyler Christiansen]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[TACACS+ [3/3] - Nexus Configuration]]></title>
+    <link href="http://oss-stack.io//blog/tacacs-nexus-configuration/"/>
+    <updated>2014-01-21T19:43:00-08:00</updated>
+    <id>http://oss-stack.io//blog/tacacs-nexus-configuration</id>
+    <content type="html"><![CDATA[<blockquote><p>Note: This is Part 3 in a series of posts on TACACS+ installation and
+deployment.</p>
+
+<p>You should read these posts in order if you&rsquo;re not familiar with
+TACACS+:</p>
+
+<ul>
+<li><a href="/blog/tacacs-introduction-to-aaa/" title="TACACS+ [0/3] - Introduction to AAA">TACACS+ [0/3] &ndash; Introduction to AAA</a></li>
+<li><a href="/blog/tacacs-downloading-and-compiling/" title="TACACS+ [1/3] - Downloading and Compiling">TACACS+ [1/3] &ndash; Downloading and Compiling</a></li>
+<li><a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">TACACS+ [2/3] &ndash; Junos Configuration</a></li>
+</ul>
+</blockquote>
+
+<p>In <a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">Part 2</a>, we covered the configuration of a Juniper Networks
+device to authenticate against a TACACS+ server.  In this part, we&rsquo;ll
+cover the configuration necessary for a Cisco Nexus switch running NXOS.</p>
+
+<h2>TACACS+ Configuration</h2>
+
+<p>Just like in <a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">Part 2</a>, we&rsquo;re going to be starting with the TACACS+
+configuration.  Most of the work is already done for us&mdash;we&rsquo;ll be adding
+another service the same way we did previously and the configuration
+will be complete.</p>
+
+<p>Start by opening the TACACS+ configuration file:</p>
+
+<p><code>bash
+cd /opt/oss-conf
+vim tac_plus/tac_plus.conf
+</code></p>
+
+<p>Next, find the <code>group</code> section for &ldquo;<strong>engineers</strong>&rdquo;.  You&rsquo;ll want to make
+the section look like it does below by adding the new <code>service</code> stanza:</p>
+
+<p>``` bash
+group = engineers {
+  default service = permit
+  service = junos-exec {</p>
+
+<pre><code>local-user-name = admin
+</code></pre>
+
+<p>  }
+  service = exec {</p>
+
+<pre><code>shell:roles="\"network-admin\""
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<blockquote><p>Remember: press <code>i</code> to enter insert mode, the <code>[escape]</code> key to exit
+insert mode, and <code>:wq</code> to save and close the file.</p></blockquote>
+
+<!-- more -->
+
+
+<p>Next, we&rsquo;ll add and commit the changes to our configuration repository:</p>
+
+<p><code>bash
+git add tac_plus/tac_plus.conf
+git commit -m 'add nxos permissions for engineers'
+</code></p>
+
+<blockquote><p>Remember that we&rsquo;re adding commits for each minor thing we do (that
+adds complete functionality for a given need).  This is generally
+considered a best practice.</p></blockquote>
+
+<p>Next, let&rsquo;s set the <code>noc</code> group to have read-only access:</p>
+
+<p><code>bash
+vim tac_plus/tac_plus.conf
+</code></p>
+
+<p>Add the necessary lines below to match your configuration to this
+example:</p>
+
+<p>``` bash
+group = noc {
+  default service = permit
+  service = junos-exec {</p>
+
+<pre><code>local-user-name = noc
+</code></pre>
+
+<p>  }
+  service = exec {</p>
+
+<pre><code>shell:roles="\"network-operator\""
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>And add and commit the changes:</p>
+
+<p><code>bash
+git add tac_plus/tac_plus.conf
+git commit -m 'add nxos permissions for noc techs'
+</code></p>
+
+<h2>Configuring NXOS</h2>
+
+<p>The NXOS configuration is shown below. Note that you&rsquo;ll need to replace
+IP addresses with your own relevant values.</p>
+
+<p>``` bash
+lab03(config)# sh run tacacs+</p>
+
+<p>!Command: show running-config tacacs+
+!Time: Sat Jan 18 22:51:01 2014</p>
+
+<p>version 5.2(1)N1(3)
+feature tacacs+</p>
+
+<p>ip tacacs source-interface mgmt0
+tacacs-server host 192.168.1.254 key 7 &ldquo;!e-q0v3_l4M4s5#&rdquo;
+aaa group server tacacs+ lab</p>
+
+<pre><code>server 192.168.1.254
+use-vrf management
+</code></pre>
+
+<p>lab03(config)#
+```</p>
+
+<blockquote><p>Start under the <code>version 5.2(1)N1(3)</code> line.  Since we&rsquo;re using
+preexisting groups, you don&rsquo;t need to create them like we did with
+Junos.</p></blockquote>
+
+<h2>Restart TACACS+</h2>
+
+<p><code>bash
+sudo stop tac_plus
+sudo start tac_plus
+</code></p>
+
+<h3>Test the NOC Tech <small>His name is Jim</small></h3>
+
+<p><code>bash
+ssh jim@192.168.1.3
+</code></p>
+
+<p>You should be able to run commands such as <code>show run</code>, <code>ping</code>, and
+<code>traceroute</code>.</p>
+
+<p>``` bash
+lab03# show vlan summary</p>
+
+<p>Number of existing VLANs           : 20
+Number of existing user VLANs      : 20
+Number of existing extended VLANs  : 0</p>
+
+<p>lab03# show running-config tacacs+</p>
+
+<p>!Command: show running-config tacacs+
+!Time: Sat Jan 18 23:45:22 2014</p>
+
+<p>version 5.2(1)N1(3)
+feature tacacs+</p>
+
+<p>ip tacacs source-interface mgmt0
+tacacs-server host 192.168.1.254 key 7 &ldquo;!e-q0v3_l4M4s5#&rdquo;
+aaa group server tacacs+ lab</p>
+
+<pre><code>server 192.168.1.254
+use-vrf management
+</code></pre>
+
+<p>lab03# ping 192.168.1.1 vrf management
+PING 192.168.1.1 (192.168.1.1): 56 data bytes
+64 bytes from 192.168.1.1: icmp_seq=0 ttl=63 time=1.494 ms
+64 bytes from 192.168.1.1: icmp_seq=1 ttl=63 time=2.047 ms
+64 bytes from 192.168.1.1: icmp_seq=2 ttl=63 time=1.099 ms
+64 bytes from 192.168.1.1: icmp_seq=3 ttl=63 time=1.29 ms
+64 bytes from 192.168.1.1: icmp_seq=4 ttl=63 time=1.1 ms</p>
+
+<p>&mdash;&ndash; 192.168.1.1 ping statistics &mdash;&ndash;
+5 packets transmitted, 5 packets received, 0.00% packet loss
+round-trip min/avg/max = 1.099/1.405/2.047 ms
+lab03# traceroute 192.168.1.1 vrf management
+traceroute to 192.168.1.1 (192.168.1.1), 30 hops max, 40 byte packets
+ 1  192.168.1.1 (192.168.1.1)  1.567 ms  1.713 ms  1.323 ms
+lab03#
+```</p>
+
+<h2>Fine-grained Control</h2>
+
+<p>Nexus switches don&rsquo;t seem to allow fine-grained control of which
+commands can be executed, unlike Junos and IOS.  That or I haven&rsquo;t found
+the special sauce yet.</p>
+
+<h2>The End <small>Finally!</small></h2>
+
+<p>This post concludes the three-part series on TACACS+, but don&rsquo;t worry!
+There will be more posts exploring other features and additional vendor
+integration.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[TACACS+ [2/3] - Junos Configuration]]></title>
+    <link href="http://oss-stack.io//blog/tacacs-junos-configuration/"/>
+    <updated>2014-01-20T19:33:09-08:00</updated>
+    <id>http://oss-stack.io//blog/tacacs-junos-configuration</id>
+    <content type="html"><![CDATA[<blockquote><p>Note: This is Part 2 in a series of posts on TACACS+ installation and
+deployment.</p>
+
+<p>You should start with <a href="/blog/tacacs-introduction-to-aaa/" title="TACACS+ [0/3] - Introduction to AAA">the special precursor</a>, followed by <a href="/blog/tacacs-downloading-and-compiling/" title="TACACS+ [1/3] - Downloading and Compiling">Part 1:
+Downloading and Compiling</a>.</p></blockquote>
+
+<p>One of major vendors that supports TACACS+ is Juniper Networks.
+Enabling TACACS+ for a Juniper Networks device is simple.  It&rsquo;s made
+even easier by the fact that the configuration is the same across their
+major routing, switching, and security platforms.</p>
+
+<blockquote><p>Note: Some platforms, such as the MAG series (which runs IVE), do not
+support TACACS+ authentication.</p></blockquote>
+
+<h2>TACACS+ Configuration</h2>
+
+<p>We&rsquo;ll start with the TACACS+ configuration.  We already have the base
+configuration from <a href="/blog/tacacs-introduction-to-aaa/" title="TACACS+ [0/3] - Introduction to AAA">part 1</a>.  We&rsquo;re only going to be modifying the
+sections of the configuration labeled as <code>group</code>.  This is for
+scalability reasons&mdash;as your users grow, you can simply add new users to
+the appropriate group instead of redefining their permissions for every
+user.</p>
+
+<p>Let&rsquo;s start with the <code>engineers</code> group.  We&rsquo;re going to add a simple
+section to the group that will grant members the same permissions as a
+local Junos user called &ldquo;<strong>admin</strong>&rdquo;.</p>
+
+<!-- more -->
+
+
+<p>Start by opening the file:</p>
+
+<p><code>bash
+cd /opt/oss-conf
+vim tac_plus/tac_plus.conf
+</code></p>
+
+<p>Now, insert the lines below.</p>
+
+<p>``` bash
+group = engineers {
+  default service = permit
+  service = junos-exec {</p>
+
+<pre><code>local-user-name = admin
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<blockquote><p>Remember: press <code>i</code> to enter insert mode, the <code>[escape]</code> key to exit
+insert mode, and <code>:wq</code> to save and close the file.</p></blockquote>
+
+<p>Next we&rsquo;ll add and commit the changes to our fancy configuration
+revision repository:</p>
+
+<p><code>bash
+git add tac_plus/tac_plus.conf
+git commit -m 'add junos permissions for engineers'
+</code></p>
+
+<p>Now, let&rsquo;s fix up the <code>noc</code> group, which will map to a local Junos user
+claled &ldquo;<strong>noc</strong>&rdquo;.  Once again, open the file:</p>
+
+<p><code>bash
+vim tac_plus/tac_plus.conf
+</code></p>
+
+<p>Add the following lines:</p>
+
+<p>``` bash
+ group = noc {
+  default service = permit
+  service = junos-exec {</p>
+
+<pre><code>local-user-name = noc
+</code></pre>
+
+<p>  }
+ }
+```</p>
+
+<p>And add the changes and commit them in git:</p>
+
+<p><code>bash
+git add tac_plus/tac_plus.conf
+git commit -m 'add junos permissions for engineers'
+</code></p>
+
+<blockquote><p>You could have just done this all together, but when you work with
+revision control, you generally want to break changes up into the
+smallest logical blocks possible.  This makes rolling back changes
+much easier and less invasive.</p></blockquote>
+
+<p>That&rsquo;s all there is to it for the TACACS+ configuration!  We&rsquo;ll cirlce
+back later to show ways to allow specific commands later&mdash;after we show
+the Junos configuration</p>
+
+<h2>Configuring Junos</h2>
+
+<p>The Junos configuration is shown below.  Note that you&rsquo;ll need to
+replace IP addresses with your own relevant values.</p>
+
+<p>``` bash
+root@lab01# show | compare
+[edit system]
++  authentication-order [ tacplus password ];
++  tacplus-server {
++      192.168.1.254 {
++          port 49;
++          secret &ldquo;$9$J0GUjTQntuO.P0BRhvMJGUHTF9A0RcyKMZUHkTQSrlMWL&rdquo;; ## SECRET-DATA
++          single-connection;
++          source-address 192.168.1.1;
++      }
++  }
++  accounting {
++      events [ login interactive-commands ];
++      destination {
++          tacplus;
++      }
++  }
++  login {
++      class admin {
++          login-alarms;
++          permissions all;
++      }
++      class noc {
++          permissions [ view view-configuration ];
++      }
++      user engineers {
++          full-name &ldquo;TACACS+ &ndash; Engineers&rdquo;;
++          class admin;
++          authentication {
++              encrypted-password &ldquo;$1$2FA/QHsx$Os2dyH/PdLiD9t96flygS/&rdquo;; ## SECRET-DATA
++          }
++      }
++      user noc {
++          full-name &ldquo;TACACS+ &ndash; NOC Techs&rdquo;;
++          class noc;
++          authentication {
++              encrypted-password &ldquo;$1$4wt52bTA$niTEoQJBfp3maQkVTvCI60&rdquo;; ## SECRET-DATA
++          }
++      }
++  }</p>
+
+<p>{master:0}[edit]
+```</p>
+
+<blockquote><p>The configuration above is in patch form.  You can load it by copying
+everything form <code>[edit system]</code> to the last line with a <code>+</code>, then
+entering configuration mode in your Juniper device, and typing <code>load
+patch terminal</code>, then pasting the patch and pressing <code>^D</code> (control+D).</p></blockquote>
+
+<h2>Restart TACACS+</h2>
+
+<p>The next step is to restart TACACS+ if it&rsquo;s running.  Check to see if
+it&rsquo;s running:</p>
+
+<p><code>bash
+sudo status tac_plus
+</code></p>
+
+<p>If it&rsquo;s not running:</p>
+
+<p><code>bash
+sudo start tac_plus
+</code></p>
+
+<p>If it is running:</p>
+
+<p><code>bash
+sudo stop tac_plus
+sudo start tac_plus
+</code></p>
+
+<p>Now, test your new configuration:</p>
+
+<p><code>bash
+ssh jim@192.168.1.1
+</code></p>
+
+<p>Junos should show you logged in as the user &ldquo;<strong>jim</strong>&rdquo;.  You should be
+able to use show commands, but not change configuration.</p>
+
+<p>``` bash
+jim@lab02> show vlans summary</p>
+
+<p>VLANs summary:</p>
+
+<pre><code>Total: 27,  Configured VLANs: 26
+Internal VLANs: 1,  Temporary VLANs: 0
+</code></pre>
+
+<p>Dot1q VLANs summary:</p>
+
+<pre><code>Total: 27, Tagged VLANs: 26, Untagged VLANs: 1
+</code></pre>
+
+<p>{master:0}
+jim@lab02> show configuration routing-options
+static {</p>
+
+<pre><code>route 0.0.0.0/0 next-hop 192.168.1.1;
+</code></pre>
+
+<p>}</p>
+
+<p>{master:0}
+jim@lab02> ping</p>
+
+<pre><code>       ^
+</code></pre>
+
+<p>unknown command.
+jim@lab02>
+```</p>
+
+<h2>Extending Permissions</h2>
+
+<p>You&rsquo;ll probably notice that although the &ldquo;<strong>jim</strong>&rdquo; user can run some
+show commands and view the configuration, he can&rsquo;t use commands such as
+<code>ping</code> and <code>traceroute</code>.  Let&rsquo;s fix that now.  Let&rsquo;s also prevent
+members of the &ldquo;<strong>noc</strong>&rdquo; group from viewing the configuration under the
+<code>system</code> hierarchy.</p>
+
+<p>To start, let&rsquo;s follow the same steps we&rsquo;ve been following.  Don&rsquo;t
+forget to see the note above for a refresher on <code>vim</code> if necessary!</p>
+
+<p><code>bash
+cd /opt/oss-conf
+vim tac_plus/tac_plus.conf
+</code></p>
+
+<p>Now, find the &ldquo;<strong>noc</strong>&rdquo; group and make it look like this:</p>
+
+<p>``` bash
+group = noc {
+  default service = permit
+  service = junos-exec {</p>
+
+<pre><code>local-user-name = noc
+allow-commands1="ping.*"
+allow-commands2="traceroute.*"
+deny-configuration1="system.*"
+</code></pre>
+
+<p>  }
+}
+```</p>
+
+<p>Add and commit to your repository:</p>
+
+<p><code>bash
+git add tac_plus/tac_plus.conf
+git commit -m 'fix command auth for noc group'
+</code></p>
+
+<p>And restart tac_plus:</p>
+
+<p><code>bash
+sudo stop tac_plus
+sudo start tac_plus
+</code></p>
+
+<h3>The results</h3>
+
+<p>``` bash
+ jim@lab01> ping 192.168.1.1 rapid
+ PING 192.168.1.1 (192.168.1.1): 56 data bytes
+ !!!!!
+ &mdash;&ndash; 192.168.1.1 ping statistics &mdash;&ndash;
+ 5 packets transmitted, 5 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 0.305/1.768/4.718/1.598 ms</p>
+
+<p>{master:0}
+jim@lab02> traceroute 192.168.1.1
+traceroute to 192.168.1.1 (192.168.1.1), 30 hops max, 40 byte packets
+ 1  192.168.2.1 (192.168.2.1)  91.231 ms  90.658 ms  95.165 ms
+ 2  192.168.1.1 (192.168.1.1)  95.484 ms  94.621 ms  103.436 ms</p>
+
+<p>{master:0}
+jim@lab02> show configuration system</p>
+
+<pre><code>                                 ^
+</code></pre>
+
+<p>permission denied.</p>
+
+<p>{master:0}
+jim@lab02> show cli authorization
+Current user: &lsquo;noc&rsquo; login: &lsquo;rancid&rsquo; class &lsquo;noc&rsquo;
+Permissions:</p>
+
+<pre><code>view        -- Can view current values and statistics
+view-configuration-- Can view all configuration (not including secrets)
+</code></pre>
+
+<p>Individual command authorization:</p>
+
+<pre><code>Allow regular expression: (ping.*|traceroute.*)
+Deny regular expression: none
+Allow configuration regular expression: none
+Deny configuration regular expression: (system.*)
+</code></pre>
+
+<p>{master:0}
+jim@lab02>
+```</p>
+
+<h2>The End <small>For now&hellip;</small></h2>
+
+<p>Once again, we&rsquo;ve reached the end of another part of the TACACS+ series.
+The final piece will focus on doing everything we did here, but for
+Cisco&rsquo;s NXOS platform.  But don&rsquo;t worry!  There will be additional,
+supplemental posts in the future to show off other features.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[TACACS+ [1/3] - Downloading and Compiling]]></title>
+    <link href="http://oss-stack.io//blog/tacacs-downloading-and-compiling/"/>
+    <updated>2014-01-19T11:05:17-08:00</updated>
+    <id>http://oss-stack.io//blog/tacacs-downloading-and-compiling</id>
+    <content type="html"><![CDATA[<blockquote><p>Note: This is Part 1 in a series of posts on TACACS+ installation and
+deployment.</p>
+
+<p>There is a special precursor post <a href="/blog/tacacs-introduction-to-aaa/" title="TACACS+ [0/3] - Introduction to AAA">here</a> that you can read if you
+don&rsquo;t have experience with TACACS+.</p>
+
+<p><a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">Part 2</a> is available <a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">here</a>.</p></blockquote>
+
+<p>This post is all about installing TACACS+.  For this guide, we&rsquo;re going
+to use <a href="http://www.shrubbery.net/tac_plus/" title="Shrubbery Networks' TACACS+ Daemon">Shrubbery Networks' excellent TACACS+ daemon</a>.  We&rsquo;re also
+going to start laying the foundations for a centralized configuration
+control system using <code>git</code>.  Finally, we&rsquo;ll write a few scripts to wrap
+the daemon up nice and tight to make it a bit easier to manage.</p>
+
+<h2>Installing the Daemon</h2>
+
+<p>There may or may not be a package available for the Shrubbery TACACS+
+daemon, but for a variety of reasons, it&rsquo;s best to build the most recent
+version from source.  This will ensure you get the best new features and
+bug fixes.  Plus, building the package is pretty easy.</p>
+
+<blockquote><p>Note: This post&rsquo;s examples are all from Ubuntu 12.04, but the concepts
+apply to any Linux distribution or BSD derivative.</p></blockquote>
+
+<h3>Prerequisites</h3>
+
+<p>You&rsquo;ll need a few things to get going.  Here&rsquo;s a list:</p>
+
+<ul>
+<li>Root on the target Linux or BSD system</li>
+<li>Essential compilation tools</li>
+<li><code>tcp_wrappers</code> library</li>
+</ul>
+
+
+<p>Here&rsquo;s a quick line to get everything you need from an Ubuntu 12.04
+system for which you have the ability to run all commands under <code>sudo</code>:</p>
+
+<p><code>bash
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install -y vim curl build-essential flex bison tcpd
+libwrap0-dev git
+</code></p>
+
+<!-- more -->
+
+
+<h3>Get the Source!</h3>
+
+<p>Getting the source code for the Shrubbery Networks distribution of
+TACACS+ is pretty simple.</p>
+
+<p><code>bash
+cd /usr/src
+sudo curl -O
+ftp://ftp.shrubbery.net/pub/tac_plus/tacacs+-F4.0.4.27a.tar.gz
+sudo tar xzf tacacs+-F4.0.4.27a.tar.gz
+rm tacacs+-F4.0.4.27a.tar.gz
+sudo chown -R $(whoami) tacacs+-F4.0.4.27a
+cd tacacs+-F4.0.4.27a
+</code></p>
+
+<blockquote><p>Note: As of this post (17 January 2014), F4.0.4.27a is the most recent
+version of the Shrubbery Networks TACACS+ daemon.  You&rsquo;ll probably
+want to <a href="ftp://ftp.shrubbery.net/pub/tac_plus" title="Shrubbery Networks TACACS+ Daemon FTP">look here</a> to ensure you&rsquo;re getting the most recent
+version.</p></blockquote>
+
+<h3>If You Build It&hellip;</h3>
+
+<p>The next part is cake.  We&rsquo;ll create the directory where the daemon will
+live, configure the environment, compile the source, and install the
+final result.  We&rsquo;ll create the configuration directory, too, but hold
+off on populating it for now.</p>
+
+<p><code>bash
+sudo mkdir -p /opt/tac_plus
+./configure --prefix=/opt/tac_plus
+make
+sudo make install
+sudo mkdir -p /opt/tac_plus/etc
+</code></p>
+
+<blockquote><p>Note: you shouldn&rsquo;t encounter any errors, but if you do and need a
+hand, feel free to
+<a href="mailto:tyler@oss-stack.io?Subject=TACACS%20Installation%20Issues">
+e-mail me: tyler (at) oss-stack [dot] io.</a></p></blockquote>
+
+<h3>Wrap It Up</h3>
+
+<p>Next, open up <code>/etc/init/tac_plus.conf</code> with <code>vim</code>:</p>
+
+<p><code>bash
+vim /etc/init/tac_plus.conf
+</code></p>
+
+<p>Now enter the below into the file.</p>
+
+<p>``` bash</p>
+
+<h1>TACACS+ Upstart Job</h1>
+
+<p>description &ldquo;Shrubbery Networks tac_plus Daemon&rdquo;
+author &ldquo;Tyler Christiansen <a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#x6f;&#58;&#116;&#x79;&#x6c;&#x65;&#114;&#x40;&#111;&#x73;&#x73;&#x2d;&#115;&#x74;&#97;&#x63;&#x6b;&#46;&#x69;&#x6f;">&#116;&#121;&#x6c;&#101;&#x72;&#64;&#x6f;&#115;&#x73;&#45;&#x73;&#116;&#97;&#x63;&#107;&#x2e;&#x69;&#111;</a>&rdquo;</p>
+
+<p>start on startup
+stop on shutdown
+respawn
+expect daemon
+exec /opt/tac_plus/bin/tac_plus -C /opt/tac_plus/etc/tac_plus.conf
+```</p>
+
+<blockquote><p>Note: if you&rsquo;re not familiar with <code>vim</code>, just press <code>i</code> to enter
+<em>insert</em> mode, paste the above contents, press the <code>[escape]</code> key, and
+type <code>:wq</code>.</p></blockquote>
+
+<p>So what does the above script do?  Well, when your system starts, the
+<code>tac_plus</code> daemon starts.  When you shut your system down, <code>tac_plus</code>
+stops.  The service will restart automatically if it crashes, and
+upstart should expect the service to daemonize itself.  This line
+(<code>expect daemon</code>) is really the key to the <code>upstart</code> script working
+properly: without it, <code>upstart</code> will lose track of the process, and you
+won&rsquo;t be able to get status of the daemon, stop it, restart it, or
+automatically restart when it crashes.</p>
+
+<h3>State of the Daemon <small>Take a break!</small></h3>
+
+<p>So far, we&rsquo;ve installed the Shrubbery Networks <code>tac_plus</code> daemon in a
+custom directory and written an <code>upstart</code> script to control it.  Doesn&rsquo;t
+sound like much, does it?  Take a quick break&mdash;basic configuration is
+next!</p>
+
+<h2>Configuration</h2>
+
+<p>We&rsquo;re going to do something a bit different here.  This is in
+preparation for a centralized configuration repository that tracks
+changes.  This is why you needed to install <code>git</code> earlier, even though
+it isn&rsquo;t required by <code>tac_plus</code>.  We&rsquo;re going to create a new directory
+structure under <code>/opt</code>, initialize a <code>git</code> repository, and create the
+initial configuration file that we&rsquo;ll build on in the next two posts.</p>
+
+<p><code>bash
+sudo mkdir -p /opt/oss-conf/tac_plus
+sudo chown -R $(whoami) /opt/oss-conf
+cd /opt/oss-conf
+git init
+vim tac_plus/tac_plus.conf
+</code></p>
+
+<p>Recall the <code>vim</code> crash-course above and enter the below contents into
+your <code>tac_plus.conf</code> file:</p>
+
+<blockquote><p>Note: Don&rsquo;t worry too much about what the below information actually
+means&mdash;we&rsquo;ll cover it as we go through the next two posts.</p></blockquote>
+
+<p><code>bash
+key = "!i-l0v3_t4C4c5#"
+accounting file = /var/log/tac_plus
+group = engineers {
+  default service = permit
+}
+group = noc {
+  default service = permit
+}
+ user = tyler {
+  member = engineers
+  login = des $6$nKlz6YCf5d$5jYg3kSMcIpnUP74XOreUiTDlgyFFxP5BivOH4uRl5pc8idyToRtJoe7b.D.CnhGR//R8jmkkW2N4/u9L3l7M1
+  enable = des des $6$nKlz6YCf5d$5jYg3kSMcIpnUP74XOreUiTDlgyFFxP5BivOH4uRl5pc8idyToRtJoe7b.D.CnhGR//R8jmkkW2N4/u9L3l7M1
+}
+user = jim {
+  member = noc
+  login = des $6$QKH4BA/kj$t/ZI5pXRzRfH0WK/EBye5eZG4twusPTjQPCgF/ZvXD/nfP2f5LqlnY1oVIB1AItoElsSN6quKuf3mrCCkgm7p.
+  enable = des $6$QKH4BA/kj$t/ZI5pXRzRfH0WK/EBye5eZG4twusPTjQPCgF/ZvXD/nfP2f5LqlnY1oVIB1AItoElsSN6quKuf3mrCCkgm7p.
+}
+</code></p>
+
+<blockquote><p>Note: the password for the user <code>tyler</code> is <code>harbl</code>, and the password
+for the user <code>jim</code> is <code>blah</code>.</p>
+
+<p>Also note that these passwords are encrypted.  They should <em>always</em>
+have <code>des</code> before the hash, and the hash should <em>always</em> indicate the
+hash type.  In this case, it is <code>SHA-512</code>.</p>
+
+<p>To generate a hashed password, use the <code>mkpasswd --method=sha-512</code>
+command.  Note that your own internal policies may require to use a
+different hashing method.</p></blockquote>
+
+<p>Now add the configuration file to the repository and commit it.</p>
+
+<p><code>bash
+git add tac_plus/tac_plus.conf
+git commit -m 'add initial tac_plus configuration'
+</code></p>
+
+<p>Finally, link this to the file your <code>upstart</code> script expects:</p>
+
+<p><code>bash
+sudo ln -s /opt/oss-conf/tac_plus/tac_plus.conf
+/opt/tac_plus/etc/tac_plus.conf
+</code></p>
+
+<h2>The End <small>For now&hellip;</small></h2>
+
+<p>A lot of stuff happened.  Downloading, building, installing,
+configuring, revision control, upstart job creation, mini crash
+courses&hellip;whew!</p>
+
+<p>Some of the items that were briefly covered will have their own posts
+(<code>git</code> and Linux basics especially) while others will be expanded upon
+later in the TACACS+ series.</p>
+
+<blockquote><p><a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">Part 2</a> is now available <a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">here</a>.</p></blockquote>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[TACACS+ [0/3] - Introduction to AAA]]></title>
+    <link href="http://oss-stack.io//blog/tacacs-introduction-to-aaa/"/>
+    <updated>2014-01-18T10:58:54-08:00</updated>
+    <id>http://oss-stack.io//blog/tacacs-introduction-to-aaa</id>
+    <content type="html"><![CDATA[<blockquote><p>Note: this is a special precursor to a series of posts related to AAA
+(authentication, authorization, and accounting) in general and TACACS+
+specifically.</p></blockquote>
+
+<p>These days, it seems that everyone is using a centralized authentication
+mechanism.  There are certainly a lot of ways to do it, too&mdash;scripts
+that push SSH keys to every device, tried-and-true services like RADIUS
+and TACACS+, or just throwing any possible form of auditing out the door
+and handing everyone the same generic credentials.  Let&rsquo;s just pretend
+that the last one in that list doesn&rsquo;t happen in the real world.</p>
+
+<h2>AAA <small>Authentication, Authorization, Accounting</small></h2>
+
+<p>AAA is all about one thing: accountability.  You can argue the
+&ldquo;authentication&rdquo; and &ldquo;authorization&rdquo; parts, but lets face it: those
+exist only to hold technicians and engineers accountable for what they
+do.</p>
+
+<h3>Why You Want It</h3>
+
+<p>If you&rsquo;re not using a AAA solution already, you&rsquo;re probably Doing It
+Wrong&trade;.  If you have 5 devices and one person accessing those
+devices, you can get away with skipping out on AAA.  If your environment
+is any more complex, you should seriously consider a AAA solution.</p>
+
+<p>AAA solutions allow you to centralize authentication and authorization,
+as well as log accounting information (such as who entered which
+commands on which devices at what times).  This is a powerful
+combination&mdash;being able to quickly determine who caused an outage can
+greatly reduce the time it takes to determine a reason for an outage,
+and it has the added benefit of having concrete proof when you coach
+your employees on their actions.</p>
+
+<!-- more -->
+
+
+<h3>RADIUS <small>VS</small> TACACS+</h3>
+
+<p>There&rsquo;s a pretty good argument between some people on the merits of
+RADIUS versus TACACS+.  The biggest case for RADIUS that I&rsquo;ve seen is
+that it&rsquo;s been around longer and has more integration with various other
+services.  For example, Apache has easy-to-use RADIUS modules for
+authentication, but the TACACS+ module that&rsquo;s out there is poorly
+documented and may not even work depending on your version of Apache.</p>
+
+<p>Why is this even important?  Well, remember that this is called the &ldquo;OSS
+Stack,&rdquo; and the whole idea is to consolidate and integrate systems as
+much as possible.  This means that applications such as Cacti that can
+take advantage of Apache&rsquo;s authentication mechanisms can be tied into
+your RADIUS deployment.  This is moderately defeated by the fact that
+permissions must be configured in Cacti, which sort of duplicates effort
+and work required, but it has its merits.</p>
+
+<p>TACACS+, on the other hand, gives you extreme flexibility.  I define a
+set of roles on a device, then configure TACACS+ to bind a user to those
+roles.  TACACS+ can be further integrated with Active Directory,
+OpenLDAP, <code>/etc/passwd</code>, MySQL, or a plain text file.  RADIUS can do
+this as well, but it&rsquo;s much more difficult and involved.</p>
+
+<p>Need more reason to go with TACACS+ instead of RADIUS?  Here&rsquo;s a few
+quick ones:</p>
+
+<ul>
+<li>RADIUS uses UDP; TACACS+ uses TCP</li>
+<li>Because of the use of TCP, TACACS+:
+
+<ul>
+<li>Scales higher</li>
+<li>Handles congestion better</li>
+<li>Handles latency better</li>
+</ul>
+</li>
+<li>RADIUS encrypts the header, but leaves all other packet contents
+unencrypted</li>
+<li>TACACS+ encrypts the entire packet, leaving a common header
+unencrypted to indicate if the packet is encrypted or not</li>
+<li>TACACS+ was designed to separate the components of AAA
+
+<ul>
+<li>This makes using certain components alone or in conjunction with
+other services easier than with RADIUS</li>
+</ul>
+</li>
+<li>TACACS+ can control which commands a user can utilize in addition to
+that user&rsquo;s role
+
+<ul>
+<li>RADIUS cannot do this</li>
+</ul>
+</li>
+</ul>
+
+
+<p>For the above reasons, we&rsquo;re going to be going with TACACS+.  Most
+articles at The OSS Stack will stick with TACACS+, although RADIUS will
+be explored in certain posts as it is necessary for certain
+infrastructure (notably 802.1x).</p>
+
+<h3>Integrating with Authentication Infrastructure</h3>
+
+<p>One of the great things you can do with TACACS+ is integrate it with
+your existing authentication infrastructure.  This means if you already
+have Active Directory or OpenLDAP deployments, you can configure TACACS+
+to pass the authentication off to those services.</p>
+
+<p>We will <strong>NOT</strong> be doing that in this series.  This type of
+integration, while good and highly sought after, introduces a terrible
+point of failure.  Equipment lockout has been observed under certain
+conditions where the TACACS+ server is available, but the backend AD or
+LDAP server is not.  This causes a router or switch to reach the TACACS+
+server but fail to authenticate (because the backend Active Directory,
+OpenLDAP, or RSA server is down), resulting in all users being unable to
+log into the device.</p>
+
+<p>However, as this is a common desire amongst administrators, it will be
+covered in a future supplemental article with a very large and in-depth
+disclaimer.</p>
+
+<h2>Other Options</h2>
+
+<p>There are, of course, other options.  Routers, switches, and firewalls
+from Juniper Networks can be configured to log all commands to a
+separate logfile, and an engineer can write a script that copies SSH
+keys to devices that support key-based authentication.  There are a few
+problems with this, namely that not all devices support key-based
+authentication.  There is also a problem when logging in from a laptop
+or iPad that does not have its public key loaded on the network device.
+It&rsquo;s also an administrative nightmare when users need to be removed on
+all devices.</p>
+
+<p>For this reason, these types of &ldquo;centralized&rdquo; authentication and/or
+logging will not be explored here at OSS Stack.</p>
+]]></content>
+  </entry>
+  
+</feed>

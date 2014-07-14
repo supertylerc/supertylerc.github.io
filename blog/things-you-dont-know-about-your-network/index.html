@@ -1,0 +1,432 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Things You Don't Know About Your Network - Tyler's Technical Retreat</title>
+  <meta name="author" content="Tyler Christiansen">
+
+  
+  <meta name="description" content="Think your network is secure? Guess again. Chances are you have
+glaring security holes in your network. I&rsquo;m not talking about random
+holes that &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://oss-stack.io//blog/things-you-dont-know-about-your-network">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Tyler's Technical Retreat" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+  
+
+</head>
+
+<body    class="collapse-sidebar sidebar-footer" >
+  <nav role="navigation">
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:oss-stack.io/" />
+    <input class="search" type="text" name="q" results="0" placeholder="Type to Search"/>
+  </fieldset>
+</form>
+  
+
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/archives">Archives</a></li>
+  <li><a href="/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <header role="banner"><div class='hero'>
+	<div class='wrap'>
+	  <h1><a href="/">Tyler's Technical Retreat</a></h1>
+	  
+	    <h2>Automation&mdash;Integration&mdash;Design&mdash;Programming</h2>
+	  
+	</div>
+</div>
+
+</header>
+  
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Things You Don't Know About Your Network</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-20T22:27:13-07:00" pubdate data-updated="true">Mar 20<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Think your network is secure?  Guess again.  Chances are you have
+glaring security holes in your network.  I&rsquo;m not talking about random
+holes that no one would think to check&mdash;I&rsquo;m talking about very simple
+things that give attackers all of the information they could possibly
+want on your network equpiment.</p>
+
+<blockquote><p><strong>DISCLAIMER</strong>: Please do <strong>NOT</strong> attempt to perform any attacks or
+active reconnaissance based on the information in this article unless
+it is on your own network and you have permission to do so!  You could
+end up in jail, and I&rsquo;m not responsible for your actions.  If you
+can&rsquo;t resist, just stop reading here.</p></blockquote>
+
+<h2>Selecting a Target Platform</h2>
+
+<p>For this very simple reconnaissance mission, we&rsquo;re going to target a
+Junos platform that responds to public SNMP requests.  This allows us to
+gain as much information as we could possibly want about our potential
+targets and gives us an at-a-glance view of our potential target base.</p>
+
+<p>I&rsquo;ll even be a bit more specific&mdash;we&rsquo;re looking for Juniper EX platforms
+on the public Internet responding to public SNMP requests which may be
+using a default community (or one easily brute forced) and most likely
+running SNMPv2c.</p>
+
+<!-- more -->
+
+
+<h2>The Tool</h2>
+
+<p>Hop over to <a href="http://shodanhq.com/">ShodanHQ</a> and poke around a bit.
+When you&rsquo;re relatively satisfied, come back here and we&rsquo;ll keep going.</p>
+
+<h2>The Query</h2>
+
+<p>Our search string is actually pretty simple.  It is just <code>ex junos
+port:161 country:us</code>.  Enter that in the search box and hit enter.  Or
+you could just point your browser
+<a href="http://www.shodanhq.com/search?q=ex+junos+port%3A161+country%3Aus">here</a>.</p>
+
+<blockquote><p>Note: You need an account (it&rsquo;s free) to search by country.  Feel free
+to leave the country off, though, and see your global target base.</p></blockquote>
+
+<p>The results may surprise you.  You don&rsquo;t even have to run the SNMP
+reconnassaince yourself, really, as Shodan gives you the results of
+querying the <code>sysDescr</code> MIB.  Now, here&rsquo;s the trick: it appears that
+when Shodan is doing its poke at things, it&rsquo;s actually brute-forcing the
+community&mdash;with a great deal of success, I might add.  Some of these may
+be using a community string of <strong>public</strong>.  Others may be using
+something equally simple but easily guessed.</p>
+
+<p>To be honest, depending on the type of attack you&rsquo;d like to ultimately
+launch, you could just stop here.  But if you want more details about
+the system&mdash;IP addresses, hardware installed, anything that sends its
+details via SNMP&mdash;you could use SNMP as your only tool for gathering
+information and have everything you need.</p>
+
+<h2>Finding an Exploit</h2>
+
+<p>This is also trivial.  Let&rsquo;s say you knew you wanted to target Juniper
+EX switches, but you didn&rsquo;t know what attacks were out there or what the
+severity of those attacks are.  Enter Shodan once again, this time via
+their <a href="https://exploits.shodan.io/">Shodan Exploits</a> site.  Enter a
+search query of <code>junos 10.4</code>, or follow <a href="https://exploits.shodan.io/?q=junos+10.4">this
+link</a>.</p>
+
+<blockquote><p>Note: there seems to be an issue with the links for exploits that
+results in 404s for all of the exploits.  Since they&rsquo;re CVEs, though,
+you can just grab the CVE number (it&rsquo;s the last part of the URL for
+the <strong>exploit-db</strong> link) and look up the info on the <a href="http://cve.mitre.org/">Official CVE
+site</a>.</p></blockquote>
+
+<p>Voila.  You have a list of exploits that telling you what versions are
+affected and what the attack vector is.  You also have a list of
+affected devices.  If you make use of the <a href="https://developer.shodan.io/">Shodan
+API</a>, it&rsquo;s <em>even easier</em>.</p>
+
+<h2>Wrap Up</h2>
+
+<p>To be fair, you actually have to have a way to perform the exploit.  But
+hackers are pretty smart people.  There&rsquo;s probably an exploit out there
+already that they just have to fish up.  Or, if the target is important
+or large enough, they&rsquo;ll just write their own.</p>
+
+<p>The point of this article has been to point out how extremely easy it is
+to perform reconnaissance on a network.  And&mdash;chances are&mdash;you&rsquo;re
+affected.  I spoke with a few engineers last night and was able to find
+exposed machines in their networks just by searching by company name.
+They had no clue they were as exposed as they are.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tyler Christiansen</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-20T22:27:13-07:00" pubdate data-updated="true">Mar 20<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ddos/'>ddos</a>, <a class='category' href='/blog/categories/pentesting/'>pentesting</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://oss-stack.io//blog/things-you-dont-know-about-your-network/" data-via="oss_stack" data-counturl="http://oss-stack.io//blog/things-you-dont-know-about-your-network/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/juniper-ntp-configuration-and-protection/" title="Previous Post: Snippet: Juniper NTP Configuration and Protection">&laquo; Snippet: Juniper NTP Configuration and Protection</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/ansible-network-automation/" title="Next Post: Ansible Network Automation">Ansible Network Automation &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+<!-- 
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+ -->
+
+    </div>
+  </div>
+  <!-- <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tyler Christiansen -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer> -->
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'supertylerc';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://oss-stack.io//blog/things-you-dont-know-about-your-network/';
+        var disqus_url = 'http://oss-stack.io//blog/things-you-dont-know-about-your-network/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+  
+  <aside class="sidebar">
+    
+      <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+    
+  </aside>
+  
+</body>
+
+
+</html>

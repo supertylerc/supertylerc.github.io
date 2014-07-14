@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Crash Course | Tyler's Technical Retreat]]></title>
+  <link href="http://oss-stack.io//blog/categories/crash-course/atom.xml" rel="self"/>
+  <link href="http://oss-stack.io//"/>
+  <updated>2014-06-21T23:42:24-07:00</updated>
+  <id>http://oss-stack.io//</id>
+  <author>
+    <name><![CDATA[Tyler Christiansen]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Crash Course - Linux]]></title>
+    <link href="http://oss-stack.io//blog/linux-crash-course/"/>
+    <updated>2014-01-22T20:19:46-08:00</updated>
+    <id>http://oss-stack.io//blog/linux-crash-course</id>
+    <content type="html"><![CDATA[<p><strong>Linux</strong> is a kernel and often a misnomer for an operating system that
+makes the life of engineers signifcantly easier.</p>
+
+<h2>The Relevance of Linux <small>The foundation of OSS</small></h2>
+
+<p>Linux plays a significant role in OSS.  That&rsquo;s not to say that it is the
+only show in town&mdash;in fact, FreeBSD may have been even more pivotal in
+OSS.  Linux seems to have merely led to wider-spread adoption.</p>
+
+<p>Many of the utilities in the OSS world were designed on and/or for Linux
+or FreeBSD.  These utilities include <a href="https://github.com/librenms/librenms" title="LibreNMS">LibreNMS</a>, <a href="http://www.cacti.net/" title="Cacti">Cacti</a>,
+<a href="http://www.shrubbery.net/rancid/" title="RANCID">RANCID</a>, <a href="http://www.shrubbery.net/tac_plus/" title="TACACS+">TACACS+</a>, and many more.</p>
+
+<p>In addition, it hosts tools such as <code>perl</code>, <code>sed</code>, <code>grep</code>, and many
+others that can make filtering through information much easier.
+Languages such as <a href="http://www.python.org/" title="Python">Python</a> and <a href="http://www.perl.org/" title="Perl">Perl</a> make writing administrative
+scripts that automate changes or collect information a breeze.</p>
+
+<!-- more -->
+
+
+<h2>Crash Course <small>The way of the terminal</small></h2>
+
+<p>The terminal will be your friend.  This article isn&rsquo;t here to teach you
+the history of Linux or how to use <code>ssh</code>.  I assume that you know how to
+SSH to a Linux server or how to open a terminal if you have GUI access
+to a Linux system.</p>
+
+<blockquote><p>If you&rsquo;re using Ubuntu 12.04 (and presumably later and possibly
+earlier), you can press <code>ctrl+alt+T</code> to open a terminal</p></blockquote>
+
+<p>Now that you have your terminal open, here are a few commands that will
+help you out on your journey to becoming an OSS ninja.</p>
+
+<blockquote><p>Before we begin, you should know that a single &ldquo;<strong>dot</strong>&rdquo; or
+&ldquo;<strong>period</strong>&rdquo; (<code>.</code>) symbolically represents the current directory you
+are in, while two consecutive &ldquo;<strong>dots</strong>&rdquo; or &ldquo;<strong>periods</strong>&rdquo; (<code>..</code>)
+represents the parent directory, or the directory above your current
+directory.</p>
+
+<p>A term in angled brackets (<code>&lt;</code> and <code>&gt;</code>) is optional.  A term in square
+brackets (<code>[</code> and <code>]</code>) is mandatory.</p></blockquote>
+
+<h3>ls <small>list files</small></h3>
+
+<p>Format:
+<code>bash
+ls &lt;options&gt; &lt;directory&gt;
+</code></p>
+
+<blockquote><p>Options begin with a hyphen (<code>-</code>).</p></blockquote>
+
+<p>Example:
+``` bash
+vagrant@precise32:/opt$ ls
+oss-conf  tac_plus  vagrant_ruby  VBoxGuestAdditions-4.2.0
+vagrant@precise32:/opt$ ls /
+bin   dev  home        lib         media  opt   root  sbin     srv  tmp
+vagrant  vmlinuz
+boot  etc  initrd.img  lost+found  mnt    proc  run   selinux  sys  usr
+var
+vagrant@precise32:/opt$ ls -R tac_plus/
+tac_plus/:
+bin  etc  include  lib  share</p>
+
+<p>tac_plus/bin:
+tac_plus  tac_pwd</p>
+
+<p>tac_plus/etc:
+tac_plus.conf</p>
+
+<p>tac_plus/include:
+tacacs.h</p>
+
+<p>tac_plus/lib:
+libtacacs.a  libtacacs.la  libtacacs.so  libtacacs.so.1
+libtacacs.so.1.0.0</p>
+
+<p>tac_plus/share:
+man  tacacs+</p>
+
+<p>tac_plus/share/man:
+man5  man8</p>
+
+<p>tac_plus/share/man/man5:
+tac_plus.conf.5</p>
+
+<p>tac_plus/share/man/man8:
+tac_plus.8  tac_pwd.8</p>
+
+<p>tac_plus/share/tacacs+:
+do_auth.py  tac_convert  users_guide
+vagrant@precise32:/opt$
+```</p>
+
+<blockquote><p>If you don&rsquo;t specify a directory, the default is to list the contents
+of the current working directory (commonly represented as a single dot
+<code>.</code>).</p></blockquote>
+
+<h3>cd <small>change directory</small></h3>
+
+<p>Format:
+<code>bash
+cd &lt;options&gt; &lt;destination&gt;
+</code></p>
+
+<p>Examples:
+<code>bash
+vagrant@precise32:/opt$ cd
+vagrant@precise32:~$ cd /opt
+vagrant@precise32:/opt$ cd
+vagrant@precise32:~$ cd ..
+vagrant@precise32:/home$ cd ~
+vagrant@precise32:~$
+</code></p>
+
+<blockquote><p>The tilde (<code>~</code>) is a shortcut meaning &ldquo;<strong>home directory</strong>&rdquo;.  The <code>cd</code>
+command by itself with no arguments changes to your home directory.
+The two dots (<code>..</code>) represents the parent directory.</p></blockquote>
+
+<h3>cp <small>copy</small></h3>
+
+<p>Format:
+<code>bash
+cp &lt;options&gt; [source] [destination]
+</code></p>
+
+<p>Examples:
+``` bash
+vagrant@precise32:~$ ls
+postinstall.sh  test
+vagrant@precise32:~$ cp /opt/tac_plus/etc/tac_plus.conf .
+vagrant@precise32:~$ ls
+postinstall.sh  tac_plus.conf  test
+vagrant@precise32:~$ ls /opt
+oss-conf  tac_plus  test  vagrant_ruby  VBoxGuestAdditions-4.2.0
+vagrant@precise32:~$ cp test /opt
+vagrant@precise32:~$ ls /opt
+oss-conf  tac_plus  test  vagrant_ruby  VBoxGuestAdditions-4.2.0
+vagrant@precise32:~$ cp -R /opt/tac_plus/ .
+vagrant@precise32:~$ ls
+postinstall.sh  tac_plus  tac_plus.conf  test
+vagrant@precise32:~$ ls -R tac_plus
+tac_plus:
+bin  etc  include  lib  share</p>
+
+<p>tac_plus/bin:
+tac_plus  tac_pwd</p>
+
+<p>tac_plus/etc:
+tac_plus.conf</p>
+
+<p>tac_plus/include:
+tacacs.h</p>
+
+<p>tac_plus/lib:
+libtacacs.a  libtacacs.la  libtacacs.so  libtacacs.so.1
+libtacacs.so.1.0.0</p>
+
+<p>tac_plus/share:
+man  tacacs+</p>
+
+<p>tac_plus/share/man:
+man5  man8</p>
+
+<p>tac_plus/share/man/man5:
+tac_plus.conf.5</p>
+
+<p>tac_plus/share/man/man8:
+tac_plus.8  tac_pwd.8</p>
+
+<p>tac_plus/share/tacacs+:
+do_auth.py  tac_convert  users_guide
+vagrant@precise32:~$
+```</p>
+
+<blockquote><p>The <code>ls</code> command is used to show contents before and after a <code>cp</code>
+command.  The <code>-R</code> flag on the <code>cp</code> command means &ldquo;<strong>recursive</strong>&rdquo; and
+is necessary to copy entire folders.</p></blockquote>
+
+<h3>mv <small>move</small></h3>
+
+<p>Format:
+<code>bash
+mv &lt;options&gt; [source] [destination]
+</code></p>
+
+<p>Examples:
+<code>bash
+vagrant@precise32:~$ ls /tmp/
+vagrant@precise32:~$ mv test /tmp/
+vagrant@precise32:~$ mv tac_plus/ /tmp/
+vagrant@precise32:~$ ls /tmp
+tac_plus  test
+vagrant@precise32:~$ ls
+postinstall.sh  tac_plus.conf
+vagrant@precise32:~$
+</code></p>
+
+<blockquote><p>The <code>mv</code> command is very similar to the <code>cp</code> command, except that it
+does not require a recursive option to move folders, and when the file
+is moved, it no longer exists at the source location.</p></blockquote>
+
+<h3>rm <small>remove</small></h3>
+
+<p>Format:
+<code>bash
+rm &lt;options&gt; [file|directory] ...
+</code></p>
+
+<p>Examples:
+``` bash
+vagrant@precise32:~$ ls /tmp
+tac_plus.conf  test  test2  test3  test4
+vagrant@precise32:~$ rm /tmp/tac_plus.conf
+vagrant@precise32:~$ ls /tmp
+test  test2  test3  test4
+vagrant@precise32:~$ rm /tmp/test /tmp/test2
+vagrant@precise32:~$ ls /tmp
+test3  test4
+vagrant@precise32:~$ rm /tmp/*
+vagrant@precise32:~$ ls /tmp
+vagrant@precise32:~$
+vagrant@precise32:~$ ls -R /tmp/
+/tmp/:
+test</p>
+
+<p>/tmp/test:
+happy  hello  sample</p>
+
+<p>/tmp/test/sample:
+goodbye  sad
+vagrant@precise32:~$ rm -r /tmp/test/
+vagrant@precise32:~$ ls -R /tmp/
+/tmp/:
+vagrant@precise32:~$
+```</p>
+
+<blockquote><p>The <code>ls</code> command is used to illustrate the effects of the <code>rm</code>
+command.  The <code>-r</code> flag means recursive.  You can specify single
+files, multiple files, directories (but must specify the <code>-r</code> flag),
+or wildcards (<code>*</code>).</p></blockquote>
+
+<h3>rmdir <small>remove directory</small></h3>
+
+<p>Format:
+<code>bash
+rmdir &lt;options&gt; [directory] ...
+</code></p>
+
+<p>Examples:
+``` bash
+vagrant@precise32:~$ ls -R /tmp
+/tmp:
+test</p>
+
+<p>/tmp/test:
+hello</p>
+
+<p>/tmp/test/hello:
+goodbye</p>
+
+<p>/tmp/test/hello/goodbye:
+friends</p>
+
+<p>/tmp/test/hello/goodbye/friends:
+vagrant@precise32:~$ rmdir /tmp/test/hello/goodbye/friends/
+vagrant@precise32:~$ ls -R /tmp/
+/tmp/:
+test</p>
+
+<p>/tmp/test:
+hello</p>
+
+<p>/tmp/test/hello:
+goodbye</p>
+
+<p>/tmp/test/hello/goodbye:
+vagrant@precise32:~$ rmdir -p /tmp/test/hello/goodbye/
+rmdir: failed to remove directory &lsquo;/tmp&rsquo;: Permission denied
+vagrant@precise32:~$ ls -R /tmp
+/tmp:
+vagrant@precise32:~$
+```</p>
+
+<blockquote><p>Be careful of the &ldquo;<strong>parents</strong>&rdquo; options (<code>-p</code>).  You can easily delete
+directories by mistake.</p></blockquote>
+
+<h3>mkdir <small>make directory</small></h3>
+
+<p>Format:
+<code>bash
+mkdir &lt;options&gt; [directory] ...
+</code></p>
+
+<p>Examples:
+``` bash
+vagrant@precise32:~$ ls /tmp
+vagrant@precise32:~$ mkdir /tmp/test
+vagrant@precise32:~$ ls /tmp
+test
+vagrant@precise32:~$ mkdir -p /tmp/test/hello/friend/nice/to/meet/you
+vagrant@precise32:~$ ls -R /tmp
+/tmp:
+test</p>
+
+<p>/tmp/test:
+hello</p>
+
+<p>/tmp/test/hello:
+friend</p>
+
+<p>/tmp/test/hello/friend:
+nice</p>
+
+<p>/tmp/test/hello/friend/nice:
+to</p>
+
+<p>/tmp/test/hello/friend/nice/to:
+meet</p>
+
+<p>/tmp/test/hello/friend/nice/to/meet:
+you</p>
+
+<p>/tmp/test/hello/friend/nice/to/meet/you:
+vagrant@precise32:~$ mkdir /tmp/sad /tmp/happy
+vagrant@precise32:~$ ls -R /tmp
+/tmp:
+happy  sad  test</p>
+
+<p>/tmp/happy:</p>
+
+<p>/tmp/sad:</p>
+
+<p>/tmp/test:
+hello</p>
+
+<p>/tmp/test/hello:
+friend</p>
+
+<p>/tmp/test/hello/friend:
+nice</p>
+
+<p>/tmp/test/hello/friend/nice:
+to</p>
+
+<p>/tmp/test/hello/friend/nice/to:
+meet</p>
+
+<p>/tmp/test/hello/friend/nice/to/meet:
+you</p>
+
+<p>/tmp/test/hello/friend/nice/to/meet/you:
+vagrant@precise32:~$
+```</p>
+
+<h3>pwd <small>present working directory</small></h3>
+
+<p>Format:
+<code>bash
+pwd
+</code></p>
+
+<p>Examples:
+<code>bash
+vagrant@precise32:~$ pwd
+/home/vagrant
+vagrant@precise32:~$
+</code></p>
+
+<h3>sudo <small>super-user do</small></h3>
+
+<blockquote><p><code>sudo</code> doesn&rsquo;t actually mean &ldquo;<strong>super-user do</strong>&rdquo;.  It means &ldquo;<strong>su
+do</strong>&rdquo;, but &ldquo;<strong>super-user do</strong>&rdquo; is frequently easier to remember when
+you&rsquo;re starting out.</p></blockquote>
+
+<p>Format:
+<code>bash
+sudo [command]
+</code></p>
+
+<p>Example:
+<code>bash
+vagrant@precise32:~$ cd /usr
+vagrant@precise32:/usr$ ls
+bin  games  include  lib  local  sbin  share  src
+vagrant@precise32:/usr$ touch test
+touch: cannot touch 'test': Permission denied
+vagrant@precise32:/usr$ sudo touch test
+vagrant@precise32:/usr$ ls
+bin  games  include  lib  local  sbin  share  src  test
+vagrant@precise32:/usr$ ls -l test
+-rw-r--r-- 1 root root 0 Jan 19 01:49 test
+vagrant@precise32:/usr$ whoami
+vagrant
+vagrant@precise32:/usr$
+</code></p>
+
+<blockquote><p><code>sudo</code> is useful to run commands that require root privileges.  It can
+also be configured such that a user can perform certain actions with
+elevated privileges but not all.</p>
+
+<p>The above example uses numerous commands you&rsquo;ve learned so far to help
+identify the effects of <code>sudo</code>.  The <code>-l</code> option for <code>ls</code> is for
+&ldquo;<strong>long</strong>&rdquo;, which shows the user and group who owns the file.  In this
+case, it is owned by the &ldquo;<strong>root</strong>&rdquo; user and group, even though you
+are &ldquo;<strong>vagrant</strong>&rdquo; (or whatever users you happen to be) as identified
+by the <code>whoami</code> command.</p>
+
+<p>This shows one of the &ldquo;gotchas&rdquo; of <code>sudo</code>: it creates files as the
+<code>root</code> user.</p></blockquote>
+
+<h3>curl <small>client url request library</small></h3>
+
+<p>Format:
+<code>bash
+curl &lt;options&gt; [target] ...
+</code></p>
+
+<p>Examples:
+``` bash
+vagrant@precise32:~$ ls
+postinstall.sh
+vagrant@precise32:~$ curl -O
+<a href="http://serpentorslair.com/wp-content/uploads/2013/10/darth-vader-16086-1680x1050.jpg">http://serpentorslair.com/wp-content/uploads/2013/10/darth-vader-16086-1680x1050.jpg</a>
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time   Current</p>
+
+<pre><code>                             Dload  Upload   Total   Spent    Left   Speed
+</code></pre>
+
+<p>100  397k  100  397k    0     0   305k      0  0:00:01  0:00:01 &mdash;:&mdash;:&mdash; 493k
+vagrant@precise32:~$ ls
+darth-vader-16086-1680x1050.jpg  postinstall.sh
+vagrant@precise32:~$ curl -o vader.jpg
+<a href="http://serpentorslair.com/wp-content/uploads/2013/10/darth-vader-16086-1680x1050.jpg">http://serpentorslair.com/wp-content/uploads/2013/10/darth-vader-16086-1680x1050.jpg</a>
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time   Current</p>
+
+<pre><code>                             Dload  Upload   Total   Spent    Left   Speed
+</code></pre>
+
+<p>100  397k  100  397k    0     0   276k      0  0:00:01  0:00:01 &mdash;:&mdash;:&mdash; 484k
+vagrant@precise32:~$ ls
+darth-vader-16086-1680x1050.jpg  postinstall.sh  vader.jpg
+vagrant@precise32:~$
+```</p>
+
+<h3>tar <small>tape archive</small></h3>
+
+<p>Format:
+<code>bash
+tar &lt;options&gt; [archive] &lt;files|directories&gt; ...
+</code></p>
+
+<p>Examples:
+<code>bash
+vagrant@precise32:~$ ls
+hello  test1  test3  world
+vagrant@precise32:~$ tar -czvf
+.bash_history              hello                      test1
+.viminfo
+.bash_logout               .profile                   test3
+world
+.bashrc                    .ssh/                      .vbox_version
+.cache/                    .sudo_as_admin_successful  .veewee_version
+vagrant@precise32:~$ tar -czvf home_dir.tar.gz test1 hello test3 world
+test1
+hello
+test3
+world
+vagrant@precise32:~$ ls
+hello  home_dir.tar.gz  test1  test3  world
+vagrant@precise32:~$ rm hello test1 test3 world
+vagrant@precise32:~$ ls
+home_dir.tar.gz
+vagrant@precise32:~$ tar -tzvf home_dir.tar.gz
+-rw-rw-r-- vagrant/vagrant   0 2014-01-19 02:26 test1
+-rw-rw-r-- vagrant/vagrant   0 2014-01-19 02:26 hello
+-rw-rw-r-- vagrant/vagrant   0 2014-01-19 02:26 test3
+-rw-rw-r-- vagrant/vagrant   0 2014-01-19 02:26 world
+vagrant@precise32:~$ ls
+home_dir.tar.gz
+vagrant@precise32:~$ tar -xzvf home_dir.tar.gz
+test1
+hello
+test3
+world
+vagrant@precise32:~$ ls
+hello  home_dir.tar.gz  test1  test3  world
+vagrant@precise32:~$
+</code></p>
+
+<blockquote><p><code>tar</code> has a number of important options.  The &ldquo;<strong>verbose</strong>&rdquo; (<code>-v</code>)
+flag prints output to your screen, the &ldquo;<strong>file</strong>&rdquo; (<code>-f</code>) tells <code>tar</code>
+which file, and the &ldquo;<strong>gzip</strong>&rdquo; (<code>-z</code>) tells <code>tar</code> to use &ldquo;<strong>gzip</strong>&rdquo;
+compression.</p>
+
+<p>There are three action flags used as well.  They are:</p>
+
+<p>&ldquo;<strong>create</strong>&rdquo; (<code>-c</code>): create the archive</p>
+
+<p>&ldquo;<strong>extract</strong>&rdquo; (<code>-x</code>): extract the archive</p>
+
+<p>&ldquo;<strong>list</strong>&rdquo; (<code>-t</code>): list the contents of the archive</p></blockquote>
+
+<h2>vim <small>Editing Files</small></h2>
+
+<p><code>vim</code> is a power text-editing utility that can be difficult to master.
+Using it for basic purposes, though, is easy.  Here&rsquo;s a short list of
+commands:</p>
+
+<ul>
+<li><code>i</code>: enter insert mode at the current curson position</li>
+<li><code>a</code>: enter insert mode one character after the current cursor position</li>
+<li><code>o</code>: enter insert mode at the next line</li>
+<li><code>dd</code>: delete the current line</li>
+<li><code>yy</code>: copy the current line</li>
+<li><code>:</code>: enter command mode</li>
+<li><code>:wq</code>: enter command mode and write and close the file</li>
+<li><code>:w</code>: enter command mode and write the file</li>
+<li><code>:q!</code>: enter command mode and close the file, discarding any unsaved
+changes</li>
+<li><code>:%s/&lt;old&gt;/&lt;new&gt;/g</code>: enter command mode and use the subtitution
+command, replacing all instances of &ldquo;<strong><old></strong>&rdquo; with &ldquo;<strong><new></strong>&rdquo;
+(note: leave the angled brackets off!)</li>
+<li><code>[escape]</code>: pressing the <code>[escape]</code> key aborts the currently entered
+partial command and/or exits command mode</li>
+</ul>
+
+
+<blockquote><p><code>vim</code> is a great tool, but it is difficult to show in a text-based
+tutorial how it&rsquo;s used (irony, huh?).  I strongly recommend <a href="http://vim-adventures.com/" title="VIM Adventures">VIM
+Adventures</a> to learn how to use <code>vim</code> properly.</p></blockquote>
+
+<h2>The End</h2>
+
+<p>This was only a crash course on the very bare necessities you must
+understand to use Linux.  More advanced tools, such as <code>sed</code>, <code>awk</code>,
+<code>perl</code>, <code>cut</code>, and more require entire posts to explain properly.</p>
+
+<p>This will get you on your way.  Look for future articles in the &ldquo;<strong>Crash
+Course</strong>&rdquo; series.</p>
+]]></content>
+  </entry>
+  
+</feed>

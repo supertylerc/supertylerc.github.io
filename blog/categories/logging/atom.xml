@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Logging | Tyler's Technical Retreat]]></title>
+  <link href="http://oss-stack.io//blog/categories/logging/atom.xml" rel="self"/>
+  <link href="http://oss-stack.io//"/>
+  <updated>2014-06-21T23:42:24-07:00</updated>
+  <id>http://oss-stack.io//</id>
+  <author>
+    <name><![CDATA[Tyler Christiansen]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Centralized Logging and Live Monitoring]]></title>
+    <link href="http://oss-stack.io//blog/centralized-logging-and-live-monitoring/"/>
+    <updated>2014-01-23T20:23:05-08:00</updated>
+    <id>http://oss-stack.io//blog/centralized-logging-and-live-monitoring</id>
+    <content type="html"><![CDATA[<p>How great would it be to read all of your router logs from one location?
+And to be able to watch the messages scroll by in real time?  This post
+will show you not only how to send your router logs to a centralized
+location, but it will also show you how to organize the logfiles on your
+centralized server.  We&rsquo;ll take it one step further by writing a shell
+script that finds the latest logfiles and prints them out.</p>
+
+<h2>Junos Configuration</h2>
+
+<p>I suspect that you&rsquo;re pretty familiar with Junos and probably already
+know the configuration necessary to send logfiles to a server, but just
+in case, here&rsquo;s the necessary configuration:</p>
+
+<p>``` bash
+tyler@lab01# show | compare
+[edit system]
++   syslog {
++       host 192.168.1.254 {
++           any any;
++           match &ldquo;!(.<em>rancid.</em>)&rdquo;;
++           port 514;
++       }
++   }</p>
+
+<p>{master:0}[edit]
+```</p>
+
+<blockquote><p>You can copy from <code>[edit system]</code> to the line above <code>{master:0}[edit]</code>
+and paste it into your Junos session if you enter the <code>load patch
+terminal</code> command from configuration mode.  Just press <code>^D</code>
+(control+D) to tell the system you&rsquo;ve finished loading the patch.</p></blockquote>
+
+<p>The above will send every log message, except for messages contianing
+the line &ldquo;<strong>rancid</strong>&rdquo;, to the specified server.  I always exclude
+&ldquo;<strong>rancid</strong>&rdquo; from log messages as my RANCID configuration is set to pull
+configs from equipment every five minutes.</p>
+
+<!-- more -->
+
+
+<h2>Server Setup</h2>
+
+<p><code>rsyslog</code> is the tool of choice for this article.  It&rsquo;s worth noting
+that you can likely obtain the same effect with other syslog servers,
+but you&rsquo;ll need to consult the relevant documentation.</p>
+
+<blockquote><p>In this article, the author assumes the use of Ubuntu (and
+specifically uses version 12.04).  Other distributions will work but
+may use different commands, particularly for package installation.</p>
+
+<p>In addition, if your company already uses a syslog server, you should
+continue to use that particular server instead of trying to run
+<code>rsyslog</code> next to it.</p></blockquote>
+
+<h3>Installing and Configuring <small><code>rsyslog</code> to the rescue</small></h3>
+
+<p>To get started, you&rsquo;ll need to install <code>rsyslog</code>.  Do this with the
+following command:</p>
+
+<p><code>bash
+sudo apt-get install -y rsyslog
+</code></p>
+
+<p>Once installed, open <code>/etc/rsyslog.conf</code> with <code>vim</code> and delete whatever
+exists and paste the below configuration:</p>
+
+<p><code>bash
+$ModLoad imuxsock
+$ModLoad imudp
+$ModLoad imklog
+$UDPServerRun 514
+$IncludeConfig /etc/rsyslog.d/*.conf
+</code></p>
+
+<blockquote><p>If you don&rsquo;t know how to use <code>vim</code>, I recommend that you read <a href="/blog/linux-crash-course/" title="Crash Course - Linux">my
+article on the basics of Linux</a>.</p></blockquote>
+
+<p>The above configuration makes it possible to listen on UDP port
+&ldquo;<strong>514</strong>&rdquo;, the port specified in the Junos configuration above, and
+includes configuration files in the <code>/etc/rsyslog.d/</code> directory (if it
+ends in <code>.conf</code>).  This makes it easier to write configuration files in
+a distributed manner.</p>
+
+<p>The next step is to configure a template.  Open up
+<code>/etc/rsyslog.d/10-routers.conf</code> and paste the below configuration:</p>
+
+<p><code>bash
+$template
+DynFile,"/var/log/netops/%HOSTNAME%/%timegenerated:1:10:date-rfc3339%"
+$filegroup noc
+:source , !isequal , "localhost" ?DynFile
+:source , !isequal , "localhost" ~
+</code></p>
+
+<blockquote><p>You may have to change <code>localhost</code> to the hostname portion of your
+monitoring server&rsquo;s FQDN.  For example, my server&rsquo;s FQDN (as revealed
+by the <code>hostname</code> command) is &ldquo;<strong>mon.example.com</strong>&rdquo;.  The hostname
+portion of that is &ldquo;<strong>mon</strong>&rdquo;, so I had to change <code>localhost</code> to <code>mon</code>.</p></blockquote>
+
+<p>The above configuration defines a template, <code>DynFile</code>, and essentially
+says, &ldquo;If the source of the log message I receive is anything EXCEPT
+&rdquo;<strong>localhost</strong>&ldquo;, put a file with the format &rdquo;<strong>YYYY-MM-DD</strong>&ldquo; in a
+directory <code>/var/log/netops/%HOSTNAME%/</code>, where %HOSTNAME% is the name of
+the message source.  When I create the file, it will have a group of
+&rdquo;<strong>noc</strong>&ldquo;.&rdquo;  This results in your logfile being something such as
+&ldquo;<strong>/var/log/netops/lab01/2014-01-21</strong>&rdquo; and being readable by members of
+the &ldquo;<strong>noc</strong>&rdquo; group.</p>
+
+<blockquote><p>The &ldquo;<strong>noc</strong>&rdquo; group does not exist yet.  Neither does the folder
+&ldquo;<strong>/var/log/netops/</strong>&rdquo;.  We&rsquo;re getting to that.</p></blockquote>
+
+<h3>Groups and Folders <small>Final preparations</small></h3>
+
+<p>To get everything up and going, we need to create the &ldquo;<strong>noc</strong>&rdquo; group
+and the &ldquo;<strong>/var/log/netops/</strong>&rdquo; folder.  We&rsquo;ll have to add the
+appropriate permissions for it as well.  This can all be done relatively
+quickly with the following commands:</p>
+
+<p><code>bash
+sudo -s
+mkdir /var/log/netops
+groupadd noc
+usermod -a -G noc tyler
+chgrp -R noc /var/log/netops
+chmod 750 /var/log/netops
+exit
+</code></p>
+
+<blockquote><p>Don&rsquo;t forget to change &ldquo;<strong>tyler</strong>&rdquo; to your username!</p></blockquote>
+
+<h3>Testing</h3>
+
+<p>After a few minutes, you should be able to see logfiles in your new
+directory structure.  See the example output below:</p>
+
+<p>``` bash
+tylerc@mon [02:04:30] [~]
+&ndash;> % ls -R /var/log/netops
+/var/log/netops:
+lab01</p>
+
+<p>/var/log/netops/lab01:
+2014-01-22</p>
+
+<p>tylerc@mon [02:04:56] [~]
+&ndash;> % cat /var/log/netops/lab01/2013-01-22
+2014-01-22T00:00:00+00:00 lab01 /usr/sbin/cron[10072]: (root) CMD (newsyslog)
+2014-01-22T00:00:00+00:00 lab01 /usr/sbin/cron[10073]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T00:00:04+00:00 lab01 sshd[10077]: TAC_AUTHEN_STATUS_GETPASS
+2014-01-22T00:00:04+00:00 lab01 sshd[10077]: TAC_AUTHEN_STATUS_PASS
+2014-01-22T00:00:04+00:00 lab01 sshd[10077]: Accepted password for jim from 192.168.1.50 port 53460 ssh2
+2014-01-22T00:00:05+00:00 lab01 mgd[10081]: UI_AUTH_EVENT: Authenticated user &lsquo;noc&rsquo; at permission level &lsquo;j-ops-ro&rsquo;
+```</p>
+
+<h2>Unified Live Log Messages <small><code>multitail</code> and <code>bash</code> are</h2>
+
+<p>superheroes</small></p>
+
+<p>The magic of an excellent utility called <code>multitail</code> will let you read
+multiple log files at the same time and split them up into multiple
+sub-windows if you so desire.  We&rsquo;ll use a simple bash script to
+automagically pull all of the current router/switch/firewall/etc logs
+in, aggregates them into a single feed and window, and &ldquo;follows&rdquo; them
+(outputs their contents to the screen whenever they&rsquo;re data is written
+to them).  We&rsquo;ll also add the ability to filter this information so that
+you can get only OSPF events or only BGP events or any combination of
+any matched phrase.</p>
+
+<h3>Multitail</h3>
+
+<p>First, grab multitail:</p>
+
+<p><code>bash
+sudo apt-get install -y multitail
+</code></p>
+
+<p>And test it out:</p>
+
+<p><code>bash
+tylerc@mon [02:55:14] [~]
+-&gt; % multitail /var/log/netops/lab01/2014-01-22 -I
+/var/log/netops/lab02/2014-01-22
+2014-01-22T02:31:19+00:00 lab01 xntpd[1223]: NTP Server Unreachable
+2014-01-22T02:31:33+00:00 lab01 last message repeated 7 times
+2014-01-22T02:31:35+00:00 lab01 xntpd[1223]: NTP Server Unreachable
+2014-01-22T02:35:00+00:00 lab01 /usr/sbin/cron[70084]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:40:00+00:00 lab01 /usr/sbin/cron[70088]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:45:00+00:00 lab01 /usr/sbin/cron[70093]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:45:00+00:00 lab01 /usr/sbin/cron[70094]: (root) CMD (newsyslog)
+2014-01-22T02:48:36+00:00 lab01 xntpd[1223]: NTP Server Unreachable
+2014-01-22T02:48:52+00:00 lab01 last message repeated 8 times
+2014-01-22T02:50:00+00:00 lab01 /usr/sbin/cron[70099]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:55:00+00:00 lab01 /usr/sbin/cron[70103]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T02:55:18+00:00 lab01 mgd[11303]: UI_CHILD_STATUS: Cleanup child '/usr/sbin/lrmuxd', PID 11321, status 0
+2014-01-22T02:55:18+00:00 lab02 mgd[11303]: UI_CHILD_START: Starting child '/usr/sbin/pgmd'
+2014-01-22T02:55:18+00:00 lab02 mgd[11303]: UI_CHILD_STATUS: Cleanup child '/usr/sbin/pgmd', PID 11322, status 0
+2014-01-22T02:55:19+00:00 lab02 mgd[11303]: UI_CHILD_START: Starting child '/usr/sbin/sdxd'
+2014-01-22T02:55:19+00:00 lab02 mgd[11303]: UI_CHILD_STATUS: Cleanup child '/usr/sbin/sdxd', PID 11323, status 0
+2014-01-22T02:55:19+00:00 lab02 mgd[11303]: UI_JUNOSCRIPT_CMD: User 'root' used JUNOScript client to run command 'request-end-session'
+</code></p>
+
+<h3>rtail <small>The <code>bash</code> script</small></h3>
+
+<p>Now, let&rsquo;s create a script called <code>rtail</code> (for &ldquo;<strong>r</strong>outer <strong>tail</strong>&rdquo;)
+and make it do some magic.  First, create a new text file called <code>rtail</code>
+in the <code>/usr/bin/local/</code> directory.</p>
+
+<blockquote><p>For a refresher, the appropriate command would be <code>sudo vim
+/usr/bin/local/rtail</code>.  See <a href="/blog/linux-crash-course/" title="Crash Course - Linux">my crash course on the basics of
+Linux</a> for more details.</p></blockquote>
+
+<p>Enter the following in the file and save it:</p>
+
+<p>``` bash</p>
+
+<h1>!/bin/bash</h1>
+
+<h1>Name    : rtail</h1>
+
+<h1>Author  : Tyler Christiansen</h1>
+
+<h1>Purpose : View current and future log messages for routers</h1>
+
+<h1>Date    : 2013-12-22</h1>
+
+<h1>Variable declarations</h1>
+
+<p>today=$(date +&ldquo;%Y-%m-%d&rdquo;)
+declare -a arg
+delim=&ldquo; -I &rdquo;</p>
+
+<h1>Search for files with today&rsquo;s date in the log dir</h1>
+
+<p>for x in $(find /var/log/netops -name <em>$today</em>); do
+  # Add the full path to the $arg array
+  arg=( &ldquo;${arg[@]}&rdquo; &ldquo;$x&rdquo; )
+done</p>
+
+<h1>Implode the array</h1>
+
+<p>arg=$(printf &ldquo;${delim}%s&rdquo; &ldquo;${arg[@]}&rdquo;)
+arg=${arg:${#delim}}</p>
+
+<h1>If the user didn&rsquo;t supply a filter&hellip;</h1>
+
+<p>if [ $# -eq 0 ]; then
+  # Then call multitail without flags
+  multitail $arg
+else
+  # The user supplied a filter, so call multitail
+  #   with the -E flag
+  multitail -E $1 $arg
+fi
+```</p>
+
+<p>Now, edit permissions to make it owned by the &ldquo;<strong>noc</strong>&rdquo; group and lock
+down execution and read/write:</p>
+
+<p><code>bash
+sudo chgrp noc /usr/local/bin/rtail
+sudo chmod 650 /usr/local/bin/rtail
+</code></p>
+
+<p>Now you should be able to execute the command.  Supply filters you want
+to apply (such as &ldquo;<strong>ospf</strong>&rdquo;) in quotation marks.</p>
+
+<blockquote><p>There is an unfortunate feature missing in <code>multitail</code>: you can&rsquo;t
+perform case-insensitive matches from the command invocation.</p>
+
+<p>However, if you start rtail with no filter expressions, you can easily
+perform case-insenstive searches by pressing the <code>/</code> key and entering
+your text, then selecting the <code>case insensitive</code> option by pressing
+the <code>tab</code> key.</p></blockquote>
+
+<p>Here&rsquo;s an example filtering on &ldquo;<strong>cron</strong>&rdquo;:</p>
+
+<p><code>bash
+2014-01-22T03:53:00+00:00 lab01 /usr/sbin/cron[96133]: (root) CMD (newsyslog)
+2014-01-22T03:50:00+00:00 lab03 /usr/sbin/cron[96593]: (root) CMD (/usr/libexec/atrun)
+2014-09-19T06:25:00+00:00 lab07 /usr/sbin/cron[48036]: (root) CMD (/usr/libexec/atrun)
+2014-09-26T03:01:00+00:00 lab06 /usr/sbin/cron[98802]: (root) CMD (adjkerntz -a)
+2014-09-26T03:40:00+00:00 lab05 /usr/sbin/cron[98767]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T03:53:00+00:00 lab02 /usr/sbin/cron[53337]: (root) CMD (newsyslog)
+2014-01-22T03:50:00+00:00 lab05 /usr/sbin/cron[39761]: (root) CMD (/usr/libexec/atrun)
+2014-09-14T07:50:00+00:00 lab10 /usr/sbin/cron[98647]: (root) CMD (/usr/libexec/atrun)
+2014-09-26T03:35:00+00:00 lab08 /usr/sbin/cron[98022]: (root) CMD (/usr/libexec/atrun)
+2014-09-14T07:55:00+00:00 lab09 /usr/sbin/cron[98586]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T03:50:00+00:00 lab07 /usr/sbin/cron[11694]: (root) CMD (/usr/libexec/atrun)
+2014-09-14T05:05:00+00:00 lab02 /usr/sbin/cron[97612]: (root) CMD (/usr/libexec/atrun)
+2014-09-14T07:55:00+00:00 lab04 /usr/sbin/cron[98640]: (root) CMD (/usr/libexec/atrun)
+2014-01-22T03:54:00+00:00 lab02 /usr/sbin/cron[53340]: (root) CMD (newsyslog)
+2014-01-22T03:54:00+00:00 lab01 /usr/sbin/cron[96136]: (root) CMD (newsyslog)
+</code></p>
+
+<blockquote><p>The output in reality looks a bit different.  The screenshot below
+shows what it would actually look like.  I&rsquo;ve blacked out actual
+hostnames (sorry).</p></blockquote>
+
+<p><div class='bogus-wrapper'><notextile><!-- Image -->
+<a id="img-3" class="imgModal" href="#imgModal-3" data-toggle="modal">
+  <img src="/images/rtail_ex.jpg" width="1407" height="630" title="Click for larger view of rtail example." />
+</a>
+<div style="float: none;"></div>
+
+<!-- Modal -->
+<div class="modal fade" id="imgModal-3" tabindex="-1" role="dialog" aria-labelledby="imgModal-3Label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">rtail example</h4>
+      </div>
+      <div class="modal-body">
+        <img src="/images/rtail_ex.jpg" width="2814" height="1260" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal --></notextile></div></p>
+
+<h2>The End</h2>
+
+<p>You should definitely check out the <a href="http://www.vanheusden.com/multitail/" title="multitail">multitail webpage</a> and read up
+on it a little more.  The bash script above is licensed under the
+<a href="http://opensource.org/licenses/BSD-2-Clause" title="BSD 2-Clause License">FreeBSD 2-Clause License</a>, so feel free to modify&mdash;it has a lot of
+room for improvement!</p>
+]]></content>
+  </entry>
+  
+</feed>

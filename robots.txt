@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://yangweilim.com/sitemap.xml 
+Sitemap: http://oss-stack.io//sitemap.xml 

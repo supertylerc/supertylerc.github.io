@@ -1,0 +1,765 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>TACACS+ [2/3] - Junos Configuration - Tyler's Technical Retreat</title>
+  <meta name="author" content="Tyler Christiansen">
+
+  
+  <meta name="description" content="Note: This is Part 2 in a series of posts on TACACS+ installation and
+deployment. You should start with the special precursor, followed by Part 1: &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://oss-stack.io//blog/tacacs-junos-configuration">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Tyler's Technical Retreat" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+  
+
+</head>
+
+<body    class="collapse-sidebar sidebar-footer" >
+  <nav role="navigation">
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:oss-stack.io/" />
+    <input class="search" type="text" name="q" results="0" placeholder="Type to Search"/>
+  </fieldset>
+</form>
+  
+
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/archives">Archives</a></li>
+  <li><a href="/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <header role="banner"><div class='hero'>
+	<div class='wrap'>
+	  <h1><a href="/">Tyler's Technical Retreat</a></h1>
+	  
+	    <h2>Automation&mdash;Integration&mdash;Design&mdash;Programming</h2>
+	  
+	</div>
+</div>
+
+</header>
+  
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">TACACS+ [2/3] - Junos Configuration</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-20T19:33:09-08:00" pubdate data-updated="true">Jan 20<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><blockquote><p>Note: This is Part 2 in a series of posts on TACACS+ installation and
+deployment.</p>
+
+<p>You should start with <a href="/blog/tacacs-introduction-to-aaa/" title="TACACS+ [0/3] - Introduction to AAA">the special precursor</a>, followed by <a href="/blog/tacacs-downloading-and-compiling/" title="TACACS+ [1/3] - Downloading and Compiling">Part 1:
+Downloading and Compiling</a>.</p></blockquote>
+
+<p>One of major vendors that supports TACACS+ is Juniper Networks.
+Enabling TACACS+ for a Juniper Networks device is simple.  It&rsquo;s made
+even easier by the fact that the configuration is the same across their
+major routing, switching, and security platforms.</p>
+
+<blockquote><p>Note: Some platforms, such as the MAG series (which runs IVE), do not
+support TACACS+ authentication.</p></blockquote>
+
+<h2>TACACS+ Configuration</h2>
+
+<p>We&rsquo;ll start with the TACACS+ configuration.  We already have the base
+configuration from <a href="/blog/tacacs-introduction-to-aaa/" title="TACACS+ [0/3] - Introduction to AAA">part 1</a>.  We&rsquo;re only going to be modifying the
+sections of the configuration labeled as <code>group</code>.  This is for
+scalability reasons&mdash;as your users grow, you can simply add new users to
+the appropriate group instead of redefining their permissions for every
+user.</p>
+
+<p>Let&rsquo;s start with the <code>engineers</code> group.  We&rsquo;re going to add a simple
+section to the group that will grant members the same permissions as a
+local Junos user called &ldquo;<strong>admin</strong>&rdquo;.</p>
+
+<!-- more -->
+
+
+<p>Start by opening the file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> /opt/oss-conf
+</span><span class='line'>vim tac_plus/tac_plus.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now, insert the lines below.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">group</span> <span class="o">=</span> engineers <span class="o">{</span>
+</span><span class='line'>  default <span class="nv">service</span> <span class="o">=</span> permit
+</span><span class='line'>  <span class="nv">service</span> <span class="o">=</span> junos-exec <span class="o">{</span>
+</span><span class='line'>    <span class="nb">local</span>-user-name <span class="o">=</span> admin
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>Remember: press <code>i</code> to enter insert mode, the <code>[escape]</code> key to exit
+insert mode, and <code>:wq</code> to save and close the file.</p></blockquote>
+
+<p>Next we&rsquo;ll add and commit the changes to our fancy configuration
+revision repository:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git add tac_plus/tac_plus.conf
+</span><span class='line'>git commit -m <span class="s1">&#39;add junos permissions for engineers&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now, let&rsquo;s fix up the <code>noc</code> group, which will map to a local Junos user
+claled &ldquo;<strong>noc</strong>&rdquo;.  Once again, open the file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vim tac_plus/tac_plus.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add the following lines:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> <span class="nv">group</span> <span class="o">=</span> noc <span class="o">{</span>
+</span><span class='line'>  default <span class="nv">service</span> <span class="o">=</span> permit
+</span><span class='line'>  <span class="nv">service</span> <span class="o">=</span> junos-exec <span class="o">{</span>
+</span><span class='line'>    <span class="nb">local</span>-user-name <span class="o">=</span> noc
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'> <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And add the changes and commit them in git:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git add tac_plus/tac_plus.conf
+</span><span class='line'>git commit -m <span class="s1">&#39;add junos permissions for engineers&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>You could have just done this all together, but when you work with
+revision control, you generally want to break changes up into the
+smallest logical blocks possible.  This makes rolling back changes
+much easier and less invasive.</p></blockquote>
+
+<p>That&rsquo;s all there is to it for the TACACS+ configuration!  We&rsquo;ll cirlce
+back later to show ways to allow specific commands later&mdash;after we show
+the Junos configuration</p>
+
+<h2>Configuring Junos</h2>
+
+<p>The Junos configuration is shown below.  Note that you&rsquo;ll need to
+replace IP addresses with your own relevant values.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@lab01# show | compare
+</span><span class='line'><span class="o">[</span>edit system<span class="o">]</span>
+</span><span class='line'>+  authentication-order <span class="o">[</span> tacplus password <span class="o">]</span>;
+</span><span class='line'>+  tacplus-server <span class="o">{</span>
+</span><span class='line'>+      192.168.1.254 <span class="o">{</span>
+</span><span class='line'>+          port 49;
+</span><span class='line'>+          secret <span class="s2">&quot;$9$J0GUjTQntuO.P0BRhvMJGUHTF9A0RcyKMZUHkTQSrlMWL&quot;</span>; <span class="c">## SECRET-DATA</span>
+</span><span class='line'>+          single-connection;
+</span><span class='line'>+          <span class="nb">source</span>-address 192.168.1.1;
+</span><span class='line'>+      <span class="o">}</span>
+</span><span class='line'>+  <span class="o">}</span>
+</span><span class='line'>+  accounting <span class="o">{</span>
+</span><span class='line'>+      events <span class="o">[</span> login interactive-commands <span class="o">]</span>;
+</span><span class='line'>+      destination <span class="o">{</span>
+</span><span class='line'>+          tacplus;
+</span><span class='line'>+      <span class="o">}</span>
+</span><span class='line'>+  <span class="o">}</span>
+</span><span class='line'>+  login <span class="o">{</span>
+</span><span class='line'>+      class admin <span class="o">{</span>
+</span><span class='line'>+          login-alarms;
+</span><span class='line'>+          permissions all;
+</span><span class='line'>+      <span class="o">}</span>
+</span><span class='line'>+      class noc <span class="o">{</span>
+</span><span class='line'>+          permissions <span class="o">[</span> view view-configuration <span class="o">]</span>;
+</span><span class='line'>+      <span class="o">}</span>
+</span><span class='line'>+      user engineers <span class="o">{</span>
+</span><span class='line'>+          full-name <span class="s2">&quot;TACACS+ - Engineers&quot;</span>;
+</span><span class='line'>+          class admin;
+</span><span class='line'>+          authentication <span class="o">{</span>
+</span><span class='line'>+              encrypted-password <span class="s2">&quot;$1$2FA/QHsx$Os2dyH/PdLiD9t96flygS/&quot;</span>; <span class="c">## SECRET-DATA</span>
+</span><span class='line'>+          <span class="o">}</span>
+</span><span class='line'>+      <span class="o">}</span>
+</span><span class='line'>+      user noc <span class="o">{</span>
+</span><span class='line'>+          full-name <span class="s2">&quot;TACACS+ - NOC Techs&quot;</span>;
+</span><span class='line'>+          class noc;
+</span><span class='line'>+          authentication <span class="o">{</span>
+</span><span class='line'>+              encrypted-password <span class="s2">&quot;$1$4wt52bTA$niTEoQJBfp3maQkVTvCI60&quot;</span>; <span class="c">## SECRET-DATA</span>
+</span><span class='line'>+          <span class="o">}</span>
+</span><span class='line'>+      <span class="o">}</span>
+</span><span class='line'>+  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}[</span>edit<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>The configuration above is in patch form.  You can load it by copying
+everything form <code>[edit system]</code> to the last line with a <code>+</code>, then
+entering configuration mode in your Juniper device, and typing <code>load
+patch terminal</code>, then pasting the patch and pressing <code>^D</code> (control+D).</p></blockquote>
+
+<h2>Restart TACACS+</h2>
+
+<p>The next step is to restart TACACS+ if it&rsquo;s running.  Check to see if
+it&rsquo;s running:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo status tac_plus
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If it&rsquo;s not running:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo start tac_plus
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If it is running:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo stop tac_plus
+</span><span class='line'>sudo start tac_plus
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now, test your new configuration:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ssh jim@192.168.1.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Junos should show you logged in as the user &ldquo;<strong>jim</strong>&rdquo;.  You should be
+able to use show commands, but not change configuration.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>jim@lab02&gt; show vlans summary
+</span><span class='line'>
+</span><span class='line'>VLANs summary:
+</span><span class='line'>    Total: 27,  Configured VLANs: 26
+</span><span class='line'>    Internal VLANs: 1,  Temporary VLANs: 0
+</span><span class='line'>
+</span><span class='line'>Dot1q VLANs summary:
+</span><span class='line'>    Total: 27, Tagged VLANs: 26, Untagged VLANs: 1
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}</span>
+</span><span class='line'>jim@lab02&gt; show configuration routing-options
+</span><span class='line'>static <span class="o">{</span>
+</span><span class='line'>    route 0.0.0.0/0 next-hop 192.168.1.1;
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}</span>
+</span><span class='line'>jim@lab02&gt; ping
+</span><span class='line'>           ^
+</span><span class='line'>unknown command.
+</span><span class='line'>jim@lab02&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Extending Permissions</h2>
+
+<p>You&rsquo;ll probably notice that although the &ldquo;<strong>jim</strong>&rdquo; user can run some
+show commands and view the configuration, he can&rsquo;t use commands such as
+<code>ping</code> and <code>traceroute</code>.  Let&rsquo;s fix that now.  Let&rsquo;s also prevent
+members of the &ldquo;<strong>noc</strong>&rdquo; group from viewing the configuration under the
+<code>system</code> hierarchy.</p>
+
+<p>To start, let&rsquo;s follow the same steps we&rsquo;ve been following.  Don&rsquo;t
+forget to see the note above for a refresher on <code>vim</code> if necessary!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> /opt/oss-conf
+</span><span class='line'>vim tac_plus/tac_plus.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now, find the &ldquo;<strong>noc</strong>&rdquo; group and make it look like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">group</span> <span class="o">=</span> noc <span class="o">{</span>
+</span><span class='line'>  default <span class="nv">service</span> <span class="o">=</span> permit
+</span><span class='line'>  <span class="nv">service</span> <span class="o">=</span> junos-exec <span class="o">{</span>
+</span><span class='line'>    <span class="nb">local</span>-user-name <span class="o">=</span> noc
+</span><span class='line'>    allow-commands1<span class="o">=</span><span class="s2">&quot;ping.*&quot;</span>
+</span><span class='line'>    allow-commands2<span class="o">=</span><span class="s2">&quot;traceroute.*&quot;</span>
+</span><span class='line'>    deny-configuration1<span class="o">=</span><span class="s2">&quot;system.*&quot;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add and commit to your repository:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git add tac_plus/tac_plus.conf
+</span><span class='line'>git commit -m <span class="s1">&#39;fix command auth for noc group&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And restart tac_plus:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo stop tac_plus
+</span><span class='line'>sudo start tac_plus
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>The results</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> jim@lab01&gt; ping 192.168.1.1 rapid
+</span><span class='line'> PING 192.168.1.1 <span class="o">(</span>192.168.1.1<span class="o">)</span>: 56 data bytes
+</span><span class='line'> !!!!!
+</span><span class='line'> --- 192.168.1.1 ping statistics ---
+</span><span class='line'> 5 packets transmitted, 5 packets received, 0% packet loss
+</span><span class='line'>round-trip min/avg/max/stddev <span class="o">=</span> 0.305/1.768/4.718/1.598 ms
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}</span>
+</span><span class='line'>jim@lab02&gt; traceroute 192.168.1.1
+</span><span class='line'>traceroute to 192.168.1.1 <span class="o">(</span>192.168.1.1<span class="o">)</span>, 30 hops max, 40 byte packets
+</span><span class='line'> 1  192.168.2.1 <span class="o">(</span>192.168.2.1<span class="o">)</span>  91.231 ms  90.658 ms  95.165 ms
+</span><span class='line'> 2  192.168.1.1 <span class="o">(</span>192.168.1.1<span class="o">)</span>  95.484 ms  94.621 ms  103.436 ms
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}</span>
+</span><span class='line'>jim@lab02&gt; show configuration system
+</span><span class='line'>                                     ^
+</span><span class='line'>permission denied.
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}</span>
+</span><span class='line'>jim@lab02&gt; show cli authorization
+</span><span class='line'>Current user: <span class="s1">&#39;noc&#39;</span> login: <span class="s1">&#39;rancid&#39;</span> class <span class="s1">&#39;noc&#39;</span>
+</span><span class='line'>Permissions:
+</span><span class='line'>    view        -- Can view current values and statistics
+</span><span class='line'>    view-configuration-- Can view all configuration <span class="o">(</span>not including secrets<span class="o">)</span>
+</span><span class='line'>Individual <span class="nb">command </span>authorization:
+</span><span class='line'>    Allow regular expression: <span class="o">(</span>ping.*|traceroute.*<span class="o">)</span>
+</span><span class='line'>    Deny regular expression: none
+</span><span class='line'>    Allow configuration regular expression: none
+</span><span class='line'>    Deny configuration regular expression: <span class="o">(</span>system.*<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}</span>
+</span><span class='line'>jim@lab02&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>The End <small>For now&hellip;</small></h2>
+
+<p>Once again, we&rsquo;ve reached the end of another part of the TACACS+ series.
+The final piece will focus on doing everything we did here, but for
+Cisco&rsquo;s NXOS platform.  But don&rsquo;t worry!  There will be additional,
+supplemental posts in the future to show off other features.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tyler Christiansen</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-20T19:33:09-08:00" pubdate data-updated="true">Jan 20<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/authentication/'>authentication</a>, <a class='category' href='/blog/categories/oss/'>oss</a>, <a class='category' href='/blog/categories/tacacs/'>tacacs</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://oss-stack.io//blog/tacacs-junos-configuration/" data-via="oss_stack" data-counturl="http://oss-stack.io//blog/tacacs-junos-configuration/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/tacacs-downloading-and-compiling/" title="Previous Post: TACACS+ [1/3] - Downloading and Compiling">&laquo; TACACS+ [1/3] - Downloading and Compiling</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/tacacs-nexus-configuration/" title="Next Post: TACACS+ [3/3] - Nexus Configuration">TACACS+ [3/3] - Nexus Configuration &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+<!-- 
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+ -->
+
+    </div>
+  </div>
+  <!-- <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tyler Christiansen -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer> -->
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'supertylerc';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://oss-stack.io//blog/tacacs-junos-configuration/';
+        var disqus_url = 'http://oss-stack.io//blog/tacacs-junos-configuration/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+  
+  <aside class="sidebar">
+    
+      <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+    
+  </aside>
+  
+</body>
+
+
+</html>

@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Juniper | Tyler's Technical Retreat]]></title>
-  <link href="http://yangweilim.com/blog/categories/juniper/atom.xml" rel="self"/>
-  <link href="http://yangweilim.com/"/>
-  <updated>2014-06-20T22:50:52-07:00</updated>
-  <id>http://yangweilim.com/</id>
+  <link href="http://oss-stack.io//blog/categories/juniper/atom.xml" rel="self"/>
+  <link href="http://oss-stack.io//"/>
+  <updated>2014-06-21T23:42:24-07:00</updated>
+  <id>http://oss-stack.io//</id>
   <author>
     <name><![CDATA[Tyler Christiansen]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Ansible Network Automation]]></title>
-    <link href="http://yangweilim.com/blog/ansible-network-automation/"/>
+    <link href="http://oss-stack.io//blog/ansible-network-automation/"/>
     <updated>2014-06-20T19:59:19-07:00</updated>
-    <id>http://yangweilim.com/blog/ansible-network-automation</id>
+    <id>http://oss-stack.io//blog/ansible-network-automation</id>
     <content type="html"><![CDATA[<p></p>
 
 <h1>Introductions</h1>
@@ -85,7 +85,7 @@ mkdir git &amp;&amp; cd $_
 git clone https://github.com/ansible/ansible.git
 source ./ansible/hacking/env-setup
 echo "source ~/git/ansible/hacking/env-setup" &gt;&gt; ~/.zshrc
-</code> bash</p>
+</code></p>
 
 <blockquote><p>I make a few assumptions about your environment in the above example
 and in future examples.  First, I assume you&rsquo;re using <a href="http://en.wikipedia.org/wiki/Z_shell" title="zsh">zsh</a>.  If
@@ -100,7 +100,7 @@ the following commands:</p>
 
 <p><code>bash
 sudo pip install git+https://github.com/Juniper/py-junos-eznc.git
-</code> bash</p>
+</code></p>
 
 <blockquote><p>You <em>might</em> get some annoying messages about libxml or libxslt.  For
 Ubuntu, you&rsquo;ll want to run the command: <code>sudo apt-get install
@@ -115,7 +115,7 @@ cd ~/git
 git clone https://github.com/Juniper/ansible-junos-stdlib.git
 source ./ansible-junos-stdlib/env-setup
 echo "source ~/git/ansible-junos-stdlib/env-setup" &gt;&gt; ~/.zshrc
-</code> bash</p>
+</code></p>
 
 <h2>Directory Setup</h2>
 
@@ -130,7 +130,7 @@ cd ansible
 touch hosts
 mkdir -p host_vars/ logs/ roles/common/{tasks,templates,vars}
 cp ~/src/ansible/examples/ansible.cfg .
-</code> bash</p>
+</code></p>
 
 <blockquote><p>This is just to get you started.  In production, you would have a
 separate user for <em>Ansible</em>.  You would <em>not</em> run it as yourself.
@@ -150,13 +150,13 @@ following command to generate one (and make your life easier for
 
 <p><code>bash
 ssh-keygen -t rsa -b 8192
-</code> bash</p>
+</code></p>
 
 <p>Just follow the instructions and then:</p>
 
 <p><code>bash
 pbcopy &lt; ~/.ssh/id_rsa.pub
-</code> bash</p>
+</code></p>
 
 <p>to copy it to your clipboard.</p>
 
@@ -228,7 +228,7 @@ user v4d3r {
 
 <p>  }
 }
-``` bash</p>
+```</p>
 
 <blockquote><p>Be careful&mdash;this deletes previous configurations.  If your username
 already exists and you delete its authentication parameters, you
@@ -259,7 +259,7 @@ though:</p>
 authentication {
   ssh-rsa "{{ passwords.key }}";
 }
-</code> bash</p>
+</code></p>
 
 <p>This stanza (and others like it) tells the <em>template</em> module to subsitute
 the variable (a human-readable container for a value) for the value it
@@ -270,7 +270,7 @@ will replace <code>{{ passwords.key }}</code> with our SSH key from earlier.</p>
 {% if users -%}
   ...
 {% endif %}
-</code> bash</p>
+</code></p>
 
 <p>Everything between these two statements only gets executed if you&rsquo;ve
 actually defined a variable called <code>users</code>.  If you haven&rsquo;t, everything
@@ -281,7 +281,7 @@ deployment didn&rsquo;t define specific users, and I ran into issues.</p>
 {% for user in users -%}
   ...
 {% endfor %}
-</code> bash</p>
+</code></p>
 
 <p>This line&mdash;and others like it&mdash;are a way to loop through the <code>users</code>
 variable, which is a <a href="http://jinja.pocoo.org/docs/templates/#literals" title="Jinja2 Literals">list</a> of <a href="http://jinja.pocoo.org/docs/templates/#literals" title="Jinja2 Literals">dicts</a>.  Each item is
@@ -313,7 +313,7 @@ ssh_keys:
   - YOUR_KEY_HERE
 </code></pre>
 
-<p>``` bash</p>
+<p>```</p>
 
 <blockquote><p>PLEASE be sure you replace the MD5 hashes above with your actual MD5
 hashes.  This is a safe way to maintain passwords in Ansible
@@ -342,7 +342,7 @@ template (or anything else).  To do this, add the following to
 - authentication
 </code></pre>
 
-<p>``` bash</p>
+<p>```</p>
 
 <p>This should be pretty readable.  We name this task <code>Login
 Configuration</code>, and we tell it that it&rsquo;s going to use the <code>template</code>
@@ -412,7 +412,7 @@ tasks:</p>
 file: path=/tmp/{{ inventory_hostname }}.d state=absent</li>
 <li>name: Destroying Compiled Configuration
 file: path=/tmp/{{ inventory_hostname }}.conf state=absent
-``` bash</li>
+```</li>
 </ul>
 </li>
 </ul>
@@ -453,7 +453,7 @@ details, but for our simple purposes, just add the following to
 <p><code>bash
 [routers]
 sw01.example.com
-</code> bash</p>
+</code></p>
 
 <blockquote><p>Obviously, replace with the DNS name of your lab router or switch.</p></blockquote>
 
@@ -461,15 +461,80 @@ sw01.example.com
 
 <p><code>bash
 ansible-playbook /etc/ansible/router_auth.yml
-</code> bash</p>
+</code></p>
 
 <p>You should be met with success as in the following example:</p>
 
-<p><code>bash
-</code> bash</p>
+<p>``` bash
+╭─tchristiansen52 at us160536 in ~ using ‹ruby-2.1.1› 14-06-21 &ndash; 11:43:42
+╰─○ ansible-playbook /etc/ansible/router_auth.yml</p>
 
-<blockquote><p>My output is slightly different as I&rsquo;m using a slightly more involved
-playbook.</p></blockquote>
+<p>PLAY [Setting Up]</p>
+
+<hr />
+
+<p>TASK: [Building Temporary Directory]</p>
+
+<hr />
+
+<p>changed: [cs01.hq.example.com]</p>
+
+<p>TASK: [Building Log Directory]</p>
+
+<hr />
+
+<p>ok: [cs01.hq.example.com]</p>
+
+<p>PLAY [Configuration Deployment]</p>
+
+<hr />
+
+<p>TASK: [net_auth | Login Configuration]</p>
+
+<hr />
+
+<p>changed: [cs01.hq.example.com]</p>
+
+<p>TASK: [Assembling Configuration]</p>
+
+<hr />
+
+<p>changed: [cs01.hq.example.com]</p>
+
+<p>TASK: [Deploying Configuration]</p>
+
+<hr />
+
+<p>changed: [cs01.hq.example.com]</p>
+
+<p>PLAY [Destroying Setup]</p>
+
+<hr />
+
+<p>TASK: [Destroying Temporary Directory]</p>
+
+<hr />
+
+<p>changed: [cs01.hq.example.com]</p>
+
+<p>TASK: [Destroying Compiled Configuration]</p>
+
+<hr />
+
+<p>changed: [cs01.hq.example.com]</p>
+
+<p>PLAY RECAP</p>
+
+<hr />
+
+<p>cs01.hq.example.com            : ok=7    changed=6    unreachable=0 failed=0</p>
+
+<p>╭─tchristiansen52 at us160536 in ~ using ‹ruby-2.1.1› 14-06-21 &ndash; 11:43:42
+╰─○
+```</p>
+
+<blockquote><p>My output is slightly different as I&rsquo;m testing a production
+deployment.</p></blockquote>
 
 <h1>Summary</h1>
 

@@ -19,7 +19,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://yangweilim.com">
+  <link rel="canonical" href="http://oss-stack.io/">
   <link href="/favicon.ico" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Tyler's Technical Retreat" type="application/atom+xml">
@@ -31,6 +31,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 
   
 
@@ -40,7 +41,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
   <nav role="navigation">
 <form action="https://www.google.com/search" method="get">
   <fieldset role="search">
-    <input type="hidden" name="q" value="site:yangweilim.com" />
+    <input type="hidden" name="q" value="site:oss-stack.io/" />
     <input class="search" type="text" name="q" results="0" placeholder="Type to Search"/>
   </fieldset>
 </form>
@@ -49,7 +50,11 @@ on a Python shell on its remote systems; some modules, &hellip;">
 <ul class="main-navigation">
   <li><a href="/">Home</a></li>
   <li><a href="/archives">Archives</a></li>
+<<<<<<< HEAD
   <li><a href="/about">About</a></li>
+=======
+  <li><a href="/resume">Resume</a></li>
+>>>>>>> e926afc7ae9d82cdce6e8a58976426adb4a9bf51
 </ul>
 
 </nav>
@@ -57,7 +62,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
 	<div class='wrap'>
 	  <h1><a href="/">Tyler's Technical Retreat</a></h1>
 	  
-	    <h2>Automation--Integration--Design--Programming</h2>
+	    <h2>Automation&mdash;Integration&mdash;Design&mdash;Programming</h2>
 	  
 	</div>
 </div>
@@ -152,7 +157,630 @@ files, which is more like reading text than code or configuration.</p>
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/things-you-dont-know-about-your-network/">Things You Don&#8217;t Know About Your Network</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-20T22:27:13-07:00" pubdate data-updated="true">Mar 20<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Think your network is secure?  Guess again.  Chances are you have
+glaring security holes in your network.  I&rsquo;m not talking about random
+holes that no one would think to check&mdash;I&rsquo;m talking about very simple
+things that give attackers all of the information they could possibly
+want on your network equpiment.</p>
+
+<blockquote><p><strong>DISCLAIMER</strong>: Please do <strong>NOT</strong> attempt to perform any attacks or
+active reconnaissance based on the information in this article unless
+it is on your own network and you have permission to do so!  You could
+end up in jail, and I&rsquo;m not responsible for your actions.  If you
+can&rsquo;t resist, just stop reading here.</p></blockquote>
+
+<h2>Selecting a Target Platform</h2>
+
+<p>For this very simple reconnaissance mission, we&rsquo;re going to target a
+Junos platform that responds to public SNMP requests.  This allows us to
+gain as much information as we could possibly want about our potential
+targets and gives us an at-a-glance view of our potential target base.</p>
+
+<p>I&rsquo;ll even be a bit more specific&mdash;we&rsquo;re looking for Juniper EX platforms
+on the public Internet responding to public SNMP requests which may be
+using a default community (or one easily brute forced) and most likely
+running SNMPv2c.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/things-you-dont-know-about-your-network/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-03T21:22:36-08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Below, you&rsquo;ll see a quick way to configure NTP on a Junos device,
+including how to secure the device from the current NTP amplification
+attack that&rsquo;s floating around.</p>
+
+<h2>Configuration</h2>
+
+<p>Below, I show a sample configuration in a lab environment.</p>
+
+<blockquote><p>The firewall filter below should not be used in production
+environments.  The &ldquo;<strong>NTP</strong>&rdquo; section is secure; the rest is not.  Take
+the appropriate &ldquo;<strong>NTP</strong>&rdquo; section, but do not use the rest.  This is a
+lab environment!</p></blockquote>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/juniper-ntp-configuration-and-protection/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-27T21:20:40-08:00" pubdate data-updated="true">Feb 27<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>While preparing for another post, I ran into an interesting Junos
+&ldquo;feature.&rdquo;  First, the problem statement: I needed to monitor traffic
+for all interfaces simultaneously for a specific set of conditions.  In
+Junos, this is not possible.  Let&rsquo;s explore this below.</p>
+
+<h2>The Attempt</h2>
+
+<p>Below, I&rsquo;ll step through the various attempts I made to monitor all
+traffic on the device.</p>
+
+<p>First, I made the attempt from the Junos shell with the <code>monitor
+traffic</code> command.  I utilized the <code>matching</code> knob, which takes a
+<code>tcpdump</code>-like filter expression as an argument.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>tylerc@lab01&gt; monitor traffic matching <span class="s2">&quot;host 192.168.0.1 &amp;&amp; udp &amp;&amp; port 9997&quot;</span>
+</span><span class='line'>verbose output suppressed, use &lt;detail&gt; or &lt;extensive&gt; <span class="k">for </span>full protocol decode
+</span><span class='line'>Address resolution is ON. Use &lt;no-resolve&gt; to avoid any reverse lookup delay.
+</span><span class='line'>Address resolution timeout is 4s.
+</span><span class='line'>Listening on fxp0, capture size 96 bytes
+</span><span class='line'>
+</span><span class='line'>^C
+</span><span class='line'>4 packets received by filter
+</span><span class='line'>0 packets dropped by kernel
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/exploring-junos-traffic-monitoring/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-25T21:18:23-08:00" pubdate data-updated="true">Feb 25<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>F5 sFlow Configuration</h1>
+
+<p>In the first of a new series of snippets, we cover configuring an sFlow
+collector on an F5 Networks Big IP LTM 7200v!</p>
+
+<blockquote><p>While the target platform is an LTM 7200v, this procedure should work
+on any F5 Networks platform running Big IP v11 or greater.  It may
+work with other versions of Big IP if they support the <code>tmsh</code>
+interface.</p></blockquote>
+
+<h2>Necessary Information</h2>
+
+<p>Before we get started, let&rsquo;s just cover some necessary information.
+First, I assume you have a collector somewhere capable of receiving
+sFlow data and that you know how to configure it properly.  In the
+examples below, my collector has the IP address <code>192.168.0.1</code> and
+expects to receive sFlow data on UDP port <code>9993</code>.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/f5-sflow-configuration/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/using-python-to-retrieve-routes/">Using Python to Retrieve Routes</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-25T21:15:00-08:00" pubdate data-updated="true">Jan 25<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><blockquote><p>You should read <a href="/blog/using-python-to-retrieve-port-status/" title="Using Python to Retrieve Port Status">this post on retrieving port status</a> first.  It
+goes into the details of setting up <a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc">py-junos-eznc</a> and getting
+your environment going.</p></blockquote>
+
+<p>We&rsquo;ve previously tackled retrieving port status for multiple devices
+using Python; now, let&rsquo;s take a look at ensuring we have similar route
+entries on multiple devices.</p>
+
+<h2>The Script</h2>
+
+<p>We&rsquo;re going to use the same design principles as we did in the previous
+script, so I won&rsquo;t bother going through the explanation here.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/using-python-to-retrieve-routes/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/using-python-to-retrieve-port-status/">Using Python to Retrieve Port Status</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-24T21:11:31-08:00" pubdate data-updated="true">Jan 24<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><blockquote><p>This post is based loosely on <a href="https://twitter.com/networkjanitor" title="Kurt Bales @networkjanitor">@networkjanitor&rsquo;s</a> (Kurt Bales) post
+on his experience <a href="http://www.network-janitor.net/2013/11/on-python-networks-and-the-py-junos-eznc-library/" title="ON PYTHON, NETWORKS AND THE PY-JUNOS-EZNC LIBRARY">starting with Python programming</a>.  You should
+read his experience as well.</p></blockquote>
+
+<p>In this post, we&rsquo;re going to explore how we can construct a list of
+routers and get the port status and the last state change of those ports
+very quickly and easily.  This post won&rsquo;t go into the details of how to
+use the <a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc">py-junos-eznc</a> API, nor will it discuss <a href="http://www.python.org/" title="Python">Python</a>
+fundamentals.  Those are both left as an exercise to the reader (and
+perhaps to future posts).</p>
+
+<h2>Router Setup</h2>
+
+<p>Before we start, you need to ensure your router has <code>netconf</code> enabled.
+This is easy.  Just log into your router and type:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>configure private
+</span><span class='line'><span class="nb">set </span>system services netconf ssh
+</span><span class='line'>show | compare
+</span><span class='line'>commit check
+</span><span class='line'>commit comment <span class="s2">&quot;Enable NetConf&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>py-junos-eznc <small>A Python library to automate Junos</small></h2>
+
+<p><a href="https://twitter.com/nwkautomaniac" title="Jeremy Schulman @nwkautomaniac">@nwkautomaniac</a> (Jeremy Schulman) has done some excellent work
+automating Junos.  The currently-supported automation library is
+<a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc">py-junos-eznc</a>, which we&rsquo;re going to install and use.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/using-python-to-retrieve-port-status/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/centralized-logging-and-live-monitoring/">Centralized Logging and Live Monitoring</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-23T20:23:05-08:00" pubdate data-updated="true">Jan 23<span>rd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>How great would it be to read all of your router logs from one location?
+And to be able to watch the messages scroll by in real time?  This post
+will show you not only how to send your router logs to a centralized
+location, but it will also show you how to organize the logfiles on your
+centralized server.  We&rsquo;ll take it one step further by writing a shell
+script that finds the latest logfiles and prints them out.</p>
+
+<h2>Junos Configuration</h2>
+
+<p>I suspect that you&rsquo;re pretty familiar with Junos and probably already
+know the configuration necessary to send logfiles to a server, but just
+in case, here&rsquo;s the necessary configuration:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>tyler@lab01# show | compare
+</span><span class='line'><span class="o">[</span>edit system<span class="o">]</span>
+</span><span class='line'>+   syslog <span class="o">{</span>
+</span><span class='line'>+       host 192.168.1.254 <span class="o">{</span>
+</span><span class='line'>+           any any;
+</span><span class='line'>+           match <span class="s2">&quot;!(.*rancid.*)&quot;</span>;
+</span><span class='line'>+           port 514;
+</span><span class='line'>+       <span class="o">}</span>
+</span><span class='line'>+   <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">{</span>master:0<span class="o">}[</span>edit<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>You can copy from <code>[edit system]</code> to the line above <code>{master:0}[edit]</code>
+and paste it into your Junos session if you enter the <code>load patch
+terminal</code> command from configuration mode.  Just press <code>^D</code>
+(control+D) to tell the system you&rsquo;ve finished loading the patch.</p></blockquote>
+
+<p>The above will send every log message, except for messages contianing
+the line &ldquo;<strong>rancid</strong>&rdquo;, to the specified server.  I always exclude
+&ldquo;<strong>rancid</strong>&rdquo; from log messages as my RANCID configuration is set to pull
+configs from equipment every five minutes.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/centralized-logging-and-live-monitoring/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/linux-crash-course/">Crash Course - Linux</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-22T20:19:46-08:00" pubdate data-updated="true">Jan 22<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><strong>Linux</strong> is a kernel and often a misnomer for an operating system that
+makes the life of engineers signifcantly easier.</p>
+
+<h2>The Relevance of Linux <small>The foundation of OSS</small></h2>
+
+<p>Linux plays a significant role in OSS.  That&rsquo;s not to say that it is the
+only show in town&mdash;in fact, FreeBSD may have been even more pivotal in
+OSS.  Linux seems to have merely led to wider-spread adoption.</p>
+
+<p>Many of the utilities in the OSS world were designed on and/or for Linux
+or FreeBSD.  These utilities include <a href="https://github.com/librenms/librenms" title="LibreNMS">LibreNMS</a>, <a href="http://www.cacti.net/" title="Cacti">Cacti</a>,
+<a href="http://www.shrubbery.net/rancid/" title="RANCID">RANCID</a>, <a href="http://www.shrubbery.net/tac_plus/" title="TACACS+">TACACS+</a>, and many more.</p>
+
+<p>In addition, it hosts tools such as <code>perl</code>, <code>sed</code>, <code>grep</code>, and many
+others that can make filtering through information much easier.
+Languages such as <a href="http://www.python.org/" title="Python">Python</a> and <a href="http://www.perl.org/" title="Perl">Perl</a> make writing administrative
+scripts that automate changes or collect information a breeze.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/linux-crash-course/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/tacacs-nexus-configuration/">TACACS+ [3/3] - Nexus Configuration</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-21T19:43:00-08:00" pubdate data-updated="true">Jan 21<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><blockquote><p>Note: This is Part 3 in a series of posts on TACACS+ installation and
+deployment.</p>
+
+<p>You should read these posts in order if you&rsquo;re not familiar with
+TACACS+:</p>
+
+<ul>
+<li><a href="/blog/tacacs-introduction-to-aaa/" title="TACACS+ [0/3] - Introduction to AAA">TACACS+ [0/3] &ndash; Introduction to AAA</a></li>
+<li><a href="/blog/tacacs-downloading-and-compiling/" title="TACACS+ [1/3] - Downloading and Compiling">TACACS+ [1/3] &ndash; Downloading and Compiling</a></li>
+<li><a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">TACACS+ [2/3] &ndash; Junos Configuration</a></li>
+</ul>
+</blockquote>
+
+<p>In <a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">Part 2</a>, we covered the configuration of a Juniper Networks
+device to authenticate against a TACACS+ server.  In this part, we&rsquo;ll
+cover the configuration necessary for a Cisco Nexus switch running NXOS.</p>
+
+<h2>TACACS+ Configuration</h2>
+
+<p>Just like in <a href="/blog/tacacs-junos-configuration/" title="TACACS+ [2/3] - Junos Configuration">Part 2</a>, we&rsquo;re going to be starting with the TACACS+
+configuration.  Most of the work is already done for us&mdash;we&rsquo;ll be adding
+another service the same way we did previously and the configuration
+will be complete.</p>
+
+<p>Start by opening the TACACS+ configuration file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> /opt/oss-conf
+</span><span class='line'>vim tac_plus/tac_plus.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, find the <code>group</code> section for &ldquo;<strong>engineers</strong>&rdquo;.  You&rsquo;ll want to make
+the section look like it does below by adding the new <code>service</code> stanza:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">group</span> <span class="o">=</span> engineers <span class="o">{</span>
+</span><span class='line'>  default <span class="nv">service</span> <span class="o">=</span> permit
+</span><span class='line'>  <span class="nv">service</span> <span class="o">=</span> junos-exec <span class="o">{</span>
+</span><span class='line'>    <span class="nb">local</span>-user-name <span class="o">=</span> admin
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="nv">service</span> <span class="o">=</span> <span class="nb">exec</span> <span class="o">{</span>
+</span><span class='line'>    shell:roles<span class="o">=</span><span class="s2">&quot;\&quot;network-admin\&quot;&quot;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>Remember: press <code>i</code> to enter insert mode, the <code>[escape]</code> key to exit
+insert mode, and <code>:wq</code> to save and close the file.</p></blockquote>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/tacacs-nexus-configuration/">Continue &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/"><i class="fa fa-chevron-circle-left fa-2x icon-color"></i></a>
     
     
   </div>
@@ -212,6 +840,22 @@ files, which is more like reading text than code or configuration.</p>
     
       <li class="post">
         <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
       </li>
     
   </ul>

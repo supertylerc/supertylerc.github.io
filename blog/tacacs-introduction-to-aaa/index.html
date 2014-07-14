@@ -1,0 +1,473 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>TACACS+ [0/3] - Introduction to AAA - Tyler's Technical Retreat</title>
+  <meta name="author" content="Tyler Christiansen">
+
+  
+  <meta name="description" content="Note: this is a special precursor to a series of posts related to AAA
+(authentication, authorization, and accounting) in general and TACACS+ &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://oss-stack.io//blog/tacacs-introduction-to-aaa">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Tyler's Technical Retreat" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+  
+
+</head>
+
+<body    class="collapse-sidebar sidebar-footer" >
+  <nav role="navigation">
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:oss-stack.io/" />
+    <input class="search" type="text" name="q" results="0" placeholder="Type to Search"/>
+  </fieldset>
+</form>
+  
+
+<ul class="main-navigation">
+  <li><a href="/">Home</a></li>
+  <li><a href="/archives">Archives</a></li>
+  <li><a href="/resume">Resume</a></li>
+</ul>
+
+</nav>
+  <header role="banner"><div class='hero'>
+	<div class='wrap'>
+	  <h1><a href="/">Tyler's Technical Retreat</a></h1>
+	  
+	    <h2>Automation&mdash;Integration&mdash;Design&mdash;Programming</h2>
+	  
+	</div>
+</div>
+
+</header>
+  
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">TACACS+ [0/3] - Introduction to AAA</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-18T10:58:54-08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><blockquote><p>Note: this is a special precursor to a series of posts related to AAA
+(authentication, authorization, and accounting) in general and TACACS+
+specifically.</p></blockquote>
+
+<p>These days, it seems that everyone is using a centralized authentication
+mechanism.  There are certainly a lot of ways to do it, too&mdash;scripts
+that push SSH keys to every device, tried-and-true services like RADIUS
+and TACACS+, or just throwing any possible form of auditing out the door
+and handing everyone the same generic credentials.  Let&rsquo;s just pretend
+that the last one in that list doesn&rsquo;t happen in the real world.</p>
+
+<h2>AAA <small>Authentication, Authorization, Accounting</small></h2>
+
+<p>AAA is all about one thing: accountability.  You can argue the
+&ldquo;authentication&rdquo; and &ldquo;authorization&rdquo; parts, but lets face it: those
+exist only to hold technicians and engineers accountable for what they
+do.</p>
+
+<h3>Why You Want It</h3>
+
+<p>If you&rsquo;re not using a AAA solution already, you&rsquo;re probably Doing It
+Wrong&trade;.  If you have 5 devices and one person accessing those
+devices, you can get away with skipping out on AAA.  If your environment
+is any more complex, you should seriously consider a AAA solution.</p>
+
+<p>AAA solutions allow you to centralize authentication and authorization,
+as well as log accounting information (such as who entered which
+commands on which devices at what times).  This is a powerful
+combination&mdash;being able to quickly determine who caused an outage can
+greatly reduce the time it takes to determine a reason for an outage,
+and it has the added benefit of having concrete proof when you coach
+your employees on their actions.</p>
+
+<!-- more -->
+
+
+<h3>RADIUS <small>VS</small> TACACS+</h3>
+
+<p>There&rsquo;s a pretty good argument between some people on the merits of
+RADIUS versus TACACS+.  The biggest case for RADIUS that I&rsquo;ve seen is
+that it&rsquo;s been around longer and has more integration with various other
+services.  For example, Apache has easy-to-use RADIUS modules for
+authentication, but the TACACS+ module that&rsquo;s out there is poorly
+documented and may not even work depending on your version of Apache.</p>
+
+<p>Why is this even important?  Well, remember that this is called the &ldquo;OSS
+Stack,&rdquo; and the whole idea is to consolidate and integrate systems as
+much as possible.  This means that applications such as Cacti that can
+take advantage of Apache&rsquo;s authentication mechanisms can be tied into
+your RADIUS deployment.  This is moderately defeated by the fact that
+permissions must be configured in Cacti, which sort of duplicates effort
+and work required, but it has its merits.</p>
+
+<p>TACACS+, on the other hand, gives you extreme flexibility.  I define a
+set of roles on a device, then configure TACACS+ to bind a user to those
+roles.  TACACS+ can be further integrated with Active Directory,
+OpenLDAP, <code>/etc/passwd</code>, MySQL, or a plain text file.  RADIUS can do
+this as well, but it&rsquo;s much more difficult and involved.</p>
+
+<p>Need more reason to go with TACACS+ instead of RADIUS?  Here&rsquo;s a few
+quick ones:</p>
+
+<ul>
+<li>RADIUS uses UDP; TACACS+ uses TCP</li>
+<li>Because of the use of TCP, TACACS+:
+
+<ul>
+<li>Scales higher</li>
+<li>Handles congestion better</li>
+<li>Handles latency better</li>
+</ul>
+</li>
+<li>RADIUS encrypts the header, but leaves all other packet contents
+unencrypted</li>
+<li>TACACS+ encrypts the entire packet, leaving a common header
+unencrypted to indicate if the packet is encrypted or not</li>
+<li>TACACS+ was designed to separate the components of AAA
+
+<ul>
+<li>This makes using certain components alone or in conjunction with
+other services easier than with RADIUS</li>
+</ul>
+</li>
+<li>TACACS+ can control which commands a user can utilize in addition to
+that user&rsquo;s role
+
+<ul>
+<li>RADIUS cannot do this</li>
+</ul>
+</li>
+</ul>
+
+
+<p>For the above reasons, we&rsquo;re going to be going with TACACS+.  Most
+articles at The OSS Stack will stick with TACACS+, although RADIUS will
+be explored in certain posts as it is necessary for certain
+infrastructure (notably 802.1x).</p>
+
+<h3>Integrating with Authentication Infrastructure</h3>
+
+<p>One of the great things you can do with TACACS+ is integrate it with
+your existing authentication infrastructure.  This means if you already
+have Active Directory or OpenLDAP deployments, you can configure TACACS+
+to pass the authentication off to those services.</p>
+
+<p>We will <strong>NOT</strong> be doing that in this series.  This type of
+integration, while good and highly sought after, introduces a terrible
+point of failure.  Equipment lockout has been observed under certain
+conditions where the TACACS+ server is available, but the backend AD or
+LDAP server is not.  This causes a router or switch to reach the TACACS+
+server but fail to authenticate (because the backend Active Directory,
+OpenLDAP, or RSA server is down), resulting in all users being unable to
+log into the device.</p>
+
+<p>However, as this is a common desire amongst administrators, it will be
+covered in a future supplemental article with a very large and in-depth
+disclaimer.</p>
+
+<h2>Other Options</h2>
+
+<p>There are, of course, other options.  Routers, switches, and firewalls
+from Juniper Networks can be configured to log all commands to a
+separate logfile, and an engineer can write a script that copies SSH
+keys to devices that support key-based authentication.  There are a few
+problems with this, namely that not all devices support key-based
+authentication.  There is also a problem when logging in from a laptop
+or iPad that does not have its public key loaded on the network device.
+It&rsquo;s also an administrative nightmare when users need to be removed on
+all devices.</p>
+
+<p>For this reason, these types of &ldquo;centralized&rdquo; authentication and/or
+logging will not be explored here at OSS Stack.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tyler Christiansen</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-18T10:58:54-08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/authentication/'>authentication</a>, <a class='category' href='/blog/categories/oss/'>oss</a>, <a class='category' href='/blog/categories/tacacs/'>tacacs</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://oss-stack.io//blog/tacacs-introduction-to-aaa/" data-via="oss_stack" data-counturl="http://oss-stack.io//blog/tacacs-introduction-to-aaa/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right" href="/blog/tacacs-downloading-and-compiling/" title="Next Post: TACACS+ [1/3] - Downloading and Compiling">TACACS+ [1/3] - Downloading and Compiling &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+<!-- 
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+ -->
+
+    </div>
+  </div>
+  <!-- <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Tyler Christiansen -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer> -->
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'supertylerc';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://oss-stack.io//blog/tacacs-introduction-to-aaa/';
+        var disqus_url = 'http://oss-stack.io//blog/tacacs-introduction-to-aaa/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+  
+  <aside class="sidebar">
+    
+      <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/supertylerc">@supertylerc</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'supertylerc',
+            count: 7,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+    
+  </aside>
+  
+</body>
+
+
+</html>

@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Coding | Tyler's Technical Retreat]]></title>
+  <link href="http://oss-stack.io//blog/categories/coding/atom.xml" rel="self"/>
+  <link href="http://oss-stack.io//"/>
+  <updated>2014-06-21T23:42:24-07:00</updated>
+  <id>http://oss-stack.io//</id>
+  <author>
+    <name><![CDATA[Tyler Christiansen]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Using Python to Retrieve Routes]]></title>
+    <link href="http://oss-stack.io//blog/using-python-to-retrieve-routes/"/>
+    <updated>2014-01-25T21:15:00-08:00</updated>
+    <id>http://oss-stack.io//blog/using-python-to-retrieve-routes</id>
+    <content type="html"><![CDATA[<blockquote><p>You should read <a href="/blog/using-python-to-retrieve-port-status/" title="Using Python to Retrieve Port Status">this post on retrieving port status</a> first.  It
+goes into the details of setting up <a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc">py-junos-eznc</a> and getting
+your environment going.</p></blockquote>
+
+<p>We&rsquo;ve previously tackled retrieving port status for multiple devices
+using Python; now, let&rsquo;s take a look at ensuring we have similar route
+entries on multiple devices.</p>
+
+<h2>The Script</h2>
+
+<p>We&rsquo;re going to use the same design principles as we did in the previous
+script, so I won&rsquo;t bother going through the explanation here.</p>
+
+<!-- more -->
+
+
+<p>Here&rsquo;s the script:</p>
+
+<p>``` python</p>
+
+<h1>!/usr/bin/python</h1>
+
+<h1>Author  : Tyler Christiansen</h1>
+
+<h1>Purpose : Get route info for multiple routers</h1>
+
+<h1>Date    : 2013-01-21</h1>
+
+<p>from jnpr.junos import Device
+from jnpr.junos.op.routes import *
+import json</p>
+
+<p>config_file = open(&lsquo;config.json&rsquo;)
+config = json.load(config_file)
+config_file.close();</p>
+
+<p>for host in config[&lsquo;hosts&rsquo;]:
+  rtr = Device(</p>
+
+<pre><code>            user=config['user'],
+            password=config['pass'],
+            host=host
+    )
+</code></pre>
+
+<p>  rtr.open()
+  print(&ldquo;Host: %s&rdquo; % host)
+  print(&ldquo;%s%s%s&rdquo; % (</p>
+
+<pre><code>                 "Route".ljust(20),
+                 "Protocol".ljust(10),
+                 "Next Hop"
+               )
+   )
+</code></pre>
+
+<p>  print &lsquo;&ndash;&rsquo; * 65
+  print
+  for route in config[&lsquo;routes&rsquo;]:</p>
+
+<pre><code>results = RouteTable(rtr).get(route)
+for route_data in results:
+  print("%s%s" % (
+                   route.ljust(20),
+                   route_data.protocol.ljust(10)
+                 )
+       ),
+  if isinstance(route_data.nexthop, list):
+    for index, value in enumerate(route_data.nexthop):
+      if index == 0:
+        print("%s, via %s" % (
+                               route_data.nexthop[index],
+                               route_data.via[index]
+                             )
+             )
+      else:
+        print(" " * 31 + "%s, via %s" % (
+                                          route_data.nexthop[index],
+                                          route_data.via[index]
+                                       )
+             )
+  else:
+    print( "%s, via %s" % (route_data.nexthop, route_data.via) )
+print("\n\n")
+</code></pre>
+
+<p>```</p>
+
+<h2>Config <small>The JSON config</small></h2>
+
+<p>We&rsquo;re going to use JSON again as in the last post, but we&rsquo;re adding a
+new property: <code>routes</code>.  This is an array (also known as a <code>list</code> in
+<code>python</code>) of routes.  Be careful how you assign the routes&mdash;you could
+get more than you bargained for!</p>
+
+<p>``` javascript
+{
+  &ldquo;user&rdquo;: &ldquo;rancid&rdquo;,
+  &ldquo;pass&rdquo;: &ldquo;rancid&rdquo;,
+  &ldquo;hosts&rdquo;: [</p>
+
+<pre><code>         "192.168.1.1",
+         "192.168.1.2"
+       ],
+</code></pre>
+
+<p>  &ldquo;routes&rdquo;: [</p>
+
+<pre><code>          "8.8.8.0/24",
+          "8.8.4.0/24"
+        ]
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Example <small>The /24s to Google&rsquo;s public DNS</small></h2>
+
+<p>``` bash
+tylerc@mon [08:58:11] [~/scripts/junos]
+&ndash;> % ./route_stats
+Host: 192.168.1.1</p>
+
+<h2>Route               Protocol  Next Hop</h2>
+
+<p>8.8.8.0/24          BGP        38.105.223.211, via ae0.0</p>
+
+<pre><code>                           198.17.53.3, via ae0.0
+                           207.86.160.130, via ae0.0
+                           207.86.166.98, via ae0.0
+</code></pre>
+
+<p>8.8.4.0/24          BGP        38.105.223.211, via ae0.0</p>
+
+<pre><code>                           198.17.53.3, via ae0.0
+                           207.86.160.130, via ae0.0
+                           207.86.166.98, via ae0.0
+</code></pre>
+
+<p>Host: 192.168.1.2</p>
+
+<h2>Route               Protocol  Next Hop</h2>
+
+<p>8.8.8.0/24          BGP        209.220.18.17, via ae0.0</p>
+
+<p>8.8.4.0/24          BGP        209.220.18.17, via ae0.0</p>
+
+<p>tylerc@mon [08:58:29] [~/scripts/junos]
+&ndash;> %
+```</p>
+
+<h2>The End</h2>
+
+<p>As usual, this can be heavily improved.  There are a lot of &ldquo;hacky&rdquo;
+things, and since I just learned the majority of the Python I know
+today, I&rsquo;m not really up on its stylings.  It seems like a language
+that&rsquo;s impossible to style well, but that&rsquo;s for another time.</p>
+
+<p>This is released under the <a href="http://opensource.org/licenses/BSD-2-Clause" title="BSD 2-Clause License">BSD 2-Clause License</a>, so feel free to
+modify within the guidlines of the license.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Using Python to Retrieve Port Status]]></title>
+    <link href="http://oss-stack.io//blog/using-python-to-retrieve-port-status/"/>
+    <updated>2014-01-24T21:11:31-08:00</updated>
+    <id>http://oss-stack.io//blog/using-python-to-retrieve-port-status</id>
+    <content type="html"><![CDATA[<blockquote><p>This post is based loosely on <a href="https://twitter.com/networkjanitor" title="Kurt Bales @networkjanitor">@networkjanitor&rsquo;s</a> (Kurt Bales) post
+on his experience <a href="http://www.network-janitor.net/2013/11/on-python-networks-and-the-py-junos-eznc-library/" title="ON PYTHON, NETWORKS AND THE PY-JUNOS-EZNC LIBRARY">starting with Python programming</a>.  You should
+read his experience as well.</p></blockquote>
+
+<p>In this post, we&rsquo;re going to explore how we can construct a list of
+routers and get the port status and the last state change of those ports
+very quickly and easily.  This post won&rsquo;t go into the details of how to
+use the <a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc">py-junos-eznc</a> API, nor will it discuss <a href="http://www.python.org/" title="Python">Python</a>
+fundamentals.  Those are both left as an exercise to the reader (and
+perhaps to future posts).</p>
+
+<h2>Router Setup</h2>
+
+<p>Before we start, you need to ensure your router has <code>netconf</code> enabled.
+This is easy.  Just log into your router and type:</p>
+
+<p><code>bash
+configure private
+set system services netconf ssh
+show | compare
+commit check
+commit comment "Enable NetConf"
+</code></p>
+
+<h2>py-junos-eznc <small>A Python library to automate Junos</small></h2>
+
+<p><a href="https://twitter.com/nwkautomaniac" title="Jeremy Schulman @nwkautomaniac">@nwkautomaniac</a> (Jeremy Schulman) has done some excellent work
+automating Junos.  The currently-supported automation library is
+<a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc">py-junos-eznc</a>, which we&rsquo;re going to install and use.</p>
+
+<!-- more -->
+
+
+<p>Open up your terminal and let&rsquo;s get started!</p>
+
+<p><code>bash
+sudo apt-get install -y python python-pip python-yaml
+cd ~
+mkdir -p scripts/junos &amp;&amp; cd $_
+pip install git+https://github.com/Juniper/ncclient.git
+pip install junos-eznc
+touch port_stats
+touch config.json
+chmod 700 port_stats
+chmod 600 config.json
+</code></p>
+
+<blockquote><p>This assumes the use of Ubuntu 12.04.  Adjust the package installation
+line (the first line above) if you&rsquo;re using a different distribution.</p></blockquote>
+
+<p>That was easy.  Let&rsquo;s (very quickly) test our success by opening the
+Python shell and importing a module:</p>
+
+<p>``` python
+Python 2.7.3 (default, Sep 26 2013, 20:03:06)
+[GCC 4.6.3] on linux2
+Type &ldquo;help&rdquo;, &ldquo;copyright&rdquo;, &ldquo;credits&rdquo; or &ldquo;license&rdquo; for more information.</p>
+
+<blockquote><blockquote><blockquote><p>from jnpr.junos.op.phyport import *
+from jnpr.junos import Device
+import json</p>
+
+<p>```</p></blockquote></blockquote>
+
+<p>To open a Python shell, just type <code>python</code> at the command line.</p>
+
+<p>If you get an error about &ldquo;<strong>python2.yml</strong>&rdquo; not existing, see issues
+<a href="https://github.com/Juniper/py-junos-eznc/issues/86" title="Issue #86">#86</a> and <a href="https://github.com/Juniper/py-junos-eznc/issues/62" title="Issue #62">#62</a> on the project&rsquo;s GitHub page for a temporary
+fix.</p></blockquote>
+
+<p>You shouldn&rsquo;t get any errors, and we should be off to the races.</p>
+
+<h2>Configuration <small>config.json</small></h2>
+
+<p>Before we get started, we should define a configuration hierarchy and
+methodology.  For this example, we&rsquo;re going to use <a href="http://www.json.org/" title="JSON">JSON, the JavaScript
+Object Notation</a>.  It is easy to read and write, and it&rsquo;s implemented
+across a large variety of languages.</p>
+
+<p>There are, essentially, three configuration-level variables we want: a
+<strong>user name</strong>, a <strong>password</strong>, and a <strong>hostname</strong> or <strong>IP address</strong>.  We
+should think about the future, though, and take this one step further:
+what if we want to get port status for <em>multiple</em> devices at the same
+time?  So we need to change our <strong>hostname</strong> requirement to a <strong>list of
+hostnames</strong>.</p>
+
+<p>Now that we know what we need, let&rsquo;s set up our configuration file with
+<code>vim</code>:</p>
+
+<blockquote><p>If you&rsquo;re not familiar with <code>vim</code> or Linux in general, you may find my
+<a href="/blog/linux-crash-course/" title="Crash Course - Linux">crash course on Linux</a> helpful.</p></blockquote>
+
+<p>``` javascript
+{
+  &ldquo;user&rdquo;: &ldquo;rancid&rdquo;,
+  &ldquo;pass&rdquo;: &ldquo;rancid&rdquo;,
+  &ldquo;hosts&rdquo;: [</p>
+
+<pre><code>         "192.168.1.1",
+         "192.168.1.2"
+       ]
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Pretty simple, right?  Two routers, a user name, and a password.</p>
+
+<blockquote><p>I&rsquo;m using the &ldquo;<strong>rancid</strong>&rdquo; user here just for simplicity.  I recommend
+you use the lowest-privileged user that is capable of the task
+required in the event of a system compromise.</p></blockquote>
+
+<h2>The Meat of It <small>The <code>python</code> script</small></h2>
+
+<p>Now open up <code>port_stats</code> and enter the following:</p>
+
+<p>``` python</p>
+
+<h1>!/usr/bin/python</h1>
+
+<h1>Author  : Tyler Christiansen</h1>
+
+<h1>Purpose : Get port state for multiple routers</h1>
+
+<h1>Date    : 2013-01-21</h1>
+
+<p>from jnpr.junos import Device
+from jnpr.junos.op.phyport import *
+import json</p>
+
+<p>config_file = open(&lsquo;config.json&rsquo;)
+config = json.load(config_file)
+config_file.close();</p>
+
+<p>for host in config[&lsquo;hosts&rsquo;]:
+  rtr = Device(</p>
+
+<pre><code>            user=config['user'],
+            password=config['pass'],
+            host=host
+    )
+</code></pre>
+
+<p>  rtr.open()
+  ports = PhyPortTable(rtr).get()
+  print(&ldquo;Host: %s&rdquo; % host)
+  print(&ldquo;%s%s%s&rdquo; % (</p>
+
+<pre><code>                 "Interface".ljust(12),
+                 "Status".ljust(8),
+                 "Time Since Last Flap".ljust(45)
+               )
+   )
+</code></pre>
+
+<p>  print &lsquo;&ndash;&rsquo; * 65
+  print
+  for port in ports:</p>
+
+<pre><code>print("%s%s%s" % (
+                     port.name.ljust(12),
+                     port.oper.ljust(8),
+                     port.flapped.ljust(45)
+                 )
+     )
+</code></pre>
+
+<p>```</p>
+
+<p>There&rsquo;s quite a bit going on in there.</p>
+
+<blockquote><p>The verbosity of <code>python</code> is one the reasons I&rsquo;m not particularly
+enchanted with it&mdash;but this is the best tool for the job right now.</p></blockquote>
+
+<h3>Making Sense <small>An explanation of the script</small></h3>
+
+<p>Assume that <strong>line 1</strong> actually starts with the first line of code,
+which is <code>from jnpr.junos.op.phyport import *</code>.</p>
+
+<p>Lines <code>1-3</code> import modules and code that are necessary for our
+script&mdash;modules to interact with the device, the port, and with our JSON
+configuration file.</p>
+
+<p>Lines <code>5-7</code> open the configuration file, read its contents, and parse
+the JSON, making a Python object that we can work with later.</p>
+
+<p>Line <code>9</code> starts the real magic: it begins to loop through all of the
+hosts we defined under the <code>hosts</code> key in <code>config.json</code>, selecting one
+value of the list at a time and giving it a temporary name of <code>host</code>,
+and continues until the end of the loop is reached.</p>
+
+<p>Lines <code>10-14</code> use data from our <code>config.json</code> file and the <code>host</code> loop
+variable to build a <code>Device</code> object.  This is what will actually build
+the connection, and it is necessary to gather information.</p>
+
+<p>Line <code>16</code> opens the <code>netconf</code> session with the router, and line <code>17</code>
+gets all of the port information.</p>
+
+<p>Lines <code>18-26</code> build a header, making use of the <code>ljust()</code> function to
+build padding to the right and left-justify the text.</p>
+
+<p>The rest of the lines loop through all of the ports on the device,
+giving a temporary variable name of <code>port</code> to each, and then printing
+out the port name, operation status, and last state change time
+following the same length constraints as the header.</p>
+
+<h2>The Result <small>An example in action</small></h2>
+
+<p>``` bash
+tylerc@mon [07:54:42] [~/scripts/junos]
+&ndash;> % ./port_stats
+Host: 192.168.1.1</p>
+
+<h2>Interface   Status  Time Since Last Flap</h2>
+
+<p>xe-0/0/0    up      2013-11-01 06:37:15 UTC (11w5d 01:17 ago)
+xe-0/0/1    up      2013-12-13 06:00:45 UTC (5w5d 01:54 ago)
+xe-0/0/2    up      2013-11-01 06:42:30 UTC (11w5d 01:12 ago)
+xe-0/0/3    down    2013-11-01 06:14:30 UTC (11w5d 01:40 ago)</p>
+
+<p>Host: 192.168.1.2</p>
+
+<h2>Interface   Status  Time Since Last Flap</h2>
+
+<p>xe-0/0/0    up      2013-12-13 06:14:28 UTC (5w5d 01:40 ago)
+xe-0/0/1    up      2013-12-13 06:14:20 UTC (5w5d 01:40 ago)
+xe-0/0/2    up      2013-12-18 22:39:35 UTC (4w6d 09:15 ago)
+xe-0/0/3    down    2013-12-13 06:14:20 UTC (5w5d 01:40 ago)</p>
+
+<p>tylerc@mon [07:55:02] [~/scripts/junos]
+&ndash;> %
+```</p>
+
+<h2>The End</h2>
+
+<p>This script is licensed under the <a href="http://opensource.org/licenses/BSD-2-Clause" title="BSD 2-Clause License">BSD 2-Clause license</a>, while the
+<a href="https://github.com/Juniper/py-junos-eznc" title="py-junos-eznc">py-junos-eznc</a> library is licensed under the <a href="http://opensource.org/licenses/Apache-2.0" title="Apache v2.0 License">Apache license</a>.
+You&rsquo;re free to modify my code as long as you retain notice that the
+original codebase was mine.</p>
+
+<p>Otherwise, enjoy it!</p>
+
+<blockquote><p>Note: I&rsquo;m not a programmer.  I&rsquo;m really not even a systems guy.  To be
+honest, I&rsquo;m not sure what you would call me, but this script could be
+a whole lot better.  More features, command-line arguments, and so on.
+<strong>PLEASE</strong> make every effort to improve it&mdash;and then share your
+contributions with the rest of the community.</p></blockquote>
+]]></content>
+  </entry>
+  
+</feed>

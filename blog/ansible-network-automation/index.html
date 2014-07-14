@@ -19,7 +19,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://yangweilim.com/blog/ansible-network-automation">
+  <link rel="canonical" href="http://oss-stack.io//blog/ansible-network-automation">
   <link href="/favicon.ico" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Tyler's Technical Retreat" type="application/atom+xml">
@@ -31,6 +31,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 
   
 
@@ -40,7 +41,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
   <nav role="navigation">
 <form action="https://www.google.com/search" method="get">
   <fieldset role="search">
-    <input type="hidden" name="q" value="site:yangweilim.com" />
+    <input type="hidden" name="q" value="site:oss-stack.io/" />
     <input class="search" type="text" name="q" results="0" placeholder="Type to Search"/>
   </fieldset>
 </form>
@@ -49,7 +50,11 @@ on a Python shell on its remote systems; some modules, &hellip;">
 <ul class="main-navigation">
   <li><a href="/">Home</a></li>
   <li><a href="/archives">Archives</a></li>
+<<<<<<< HEAD
   <li><a href="/about">About</a></li>
+=======
+  <li><a href="/resume">Resume</a></li>
+>>>>>>> e926afc7ae9d82cdce6e8a58976426adb4a9bf51
 </ul>
 
 </nav>
@@ -57,7 +62,7 @@ on a Python shell on its remote systems; some modules, &hellip;">
 	<div class='wrap'>
 	  <h1><a href="/">Tyler's Technical Retreat</a></h1>
 	  
-	    <h2>Automation--Integration--Design--Programming</h2>
+	    <h2>Automation&mdash;Integration&mdash;Design&mdash;Programming</h2>
 	  
 	</div>
 </div>
@@ -165,8 +170,6 @@ also a <a href="http://git-scm.com/download/win" title="Git Windows Client">Wind
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <blockquote><p>I make a few assumptions about your environment in the above example
 and in future examples.  First, I assume you&rsquo;re using <a href="http://en.wikipedia.org/wiki/Z_shell" title="zsh">zsh</a>.  If
 you&rsquo;re not, replace <code>~/.zshrc</code> with the most likely alternative,
@@ -182,8 +185,6 @@ the following commands:</p>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo pip install git+https://github.com/Juniper/py-junos-eznc.git
 </span></code></pre></td></tr></table></div></figure>
 
-
-<p> bash</p>
 
 <blockquote><p>You <em>might</em> get some annoying messages about libxml or libxslt.  For
 Ubuntu, you&rsquo;ll want to run the command: <code>sudo apt-get install
@@ -203,8 +204,6 @@ libxml2-dev libxslt1-dev</code>.</p></blockquote>
 </span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;source ~/git/ansible-junos-stdlib/env-setup&quot;</span> &gt;&gt; ~/.zshrc
 </span></code></pre></td></tr></table></div></figure>
 
-
-<p> bash</p>
 
 <h2>Directory Setup</h2>
 
@@ -228,8 +227,6 @@ run:</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <blockquote><p>This is just to get you started.  In production, you would have a
 separate user for <em>Ansible</em>.  You would <em>not</em> run it as yourself.
 We&rsquo;ll also be using the default <em>Ansible</em> configuration and simply
@@ -251,16 +248,12 @@ following command to generate one (and make your life easier for
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <p>Just follow the instructions and then:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>pbcopy &lt; ~/.ssh/id_rsa.pub
 </span></code></pre></td></tr></table></div></figure>
 
-
-<p> bash</p>
 
 <p>to copy it to your clipboard.</p>
 
@@ -370,8 +363,6 @@ window and start editing.</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <blockquote><p>Be careful&mdash;this deletes previous configurations.  If your username
 already exists and you delete its authentication parameters, you
 <em>might</em> lock yourself out.  You&rsquo;ve been warned!</p></blockquote>
@@ -406,8 +397,6 @@ though:</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <p>This stanza (and others like it) tells the <em>template</em> module to subsitute
 the variable (a human-readable container for a value) for the value it
 contains.  You&rsquo;ll see our variable definitions in a minute, but this
@@ -422,8 +411,6 @@ will replace <code>{{ passwords.key }}</code> with our SSH key from earlier.</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <p>Everything between these two statements only gets executed if you&rsquo;ve
 actually defined a variable called <code>users</code>.  If you haven&rsquo;t, everything
 is skipped!  This is mostly a way to save myself from myself.  My first
@@ -437,8 +424,6 @@ deployment didn&rsquo;t define specific users, and I ran into issues.</p>
 </span><span class='line'><span class="o">{</span>% endfor %<span class="o">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
-
-<p> bash</p>
 
 <p>This line&mdash;and others like it&mdash;are a way to loop through the <code>users</code>
 variable, which is a <a href="http://jinja.pocoo.org/docs/templates/#literals" title="Jinja2 Literals">list</a> of <a href="http://jinja.pocoo.org/docs/templates/#literals" title="Jinja2 Literals">dicts</a>.  Each item is
@@ -479,8 +464,6 @@ the following in it:</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <blockquote><p>PLEASE be sure you replace the MD5 hashes above with your actual MD5
 hashes.  This is a safe way to maintain passwords in Ansible
 configurations without worrying about password safety (sort
@@ -511,8 +494,6 @@ template (or anything else).  To do this, add the following to
 </span><span class='line'>    - authentication
 </span></code></pre></td></tr></table></div></figure>
 
-
-<p> bash</p>
 
 <p>This should be pretty readable.  We name this task <code>Login
 Configuration</code>, and we tell it that it&rsquo;s going to use the <code>template</code>
@@ -610,8 +591,6 @@ host-by-host basis, and each of these &ldquo;collections&rdquo; is called a
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <p>This playbook defines a number of plays.  First, it sets us up for
 success by ensuring the directory <code>/tmp/{{ inventory_hostname }}.d/</code>
 exists using the <a href="http://docs.ansible.com/file_module.html" title="Ansible File Module">file</a> module.  Then, it combines all of our
@@ -651,8 +630,6 @@ details, but for our simple purposes, just add the following to
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <blockquote><p>Obviously, replace with the DNS name of your lab router or switch.</p></blockquote>
 
 <p>Now, you&rsquo;re ready.  Run the following command:</p>
@@ -662,15 +639,105 @@ details, but for our simple purposes, just add the following to
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> bash</p>
-
 <p>You should be met with success as in the following example:</p>
 
-<p><code>bash
-</code> bash</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>╭─tchristiansen52 at us160536 in ~ using ‹ruby-2.1.1› 14-06-21 - 11:43:42
+</span><span class='line'>╰─○ ansible-playbook /etc/ansible/router_auth.yml
+</span><span class='line'>
+</span><span class='line'>PLAY <span class="o">[</span>Setting Up<span class="o">]</span>
+</span><span class='line'>*************************************************************
+</span><span class='line'>
+</span><span class='line'>TASK: <span class="o">[</span>Building Temporary Directory<span class="o">]</span>
+</span><span class='line'>******************************************
+</span><span class='line'>changed: <span class="o">[</span>cs01.hq.example.com<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>TASK: <span class="o">[</span>Building Log Directory<span class="o">]</span>
+</span><span class='line'>************************************************
+</span><span class='line'>ok: <span class="o">[</span>cs01.hq.example.com<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>PLAY <span class="o">[</span>Configuration Deployment<span class="o">]</span>
+</span><span class='line'>***********************************************
+</span><span class='line'>
+</span><span class='line'>TASK: <span class="o">[</span>net_auth | Login Configuration<span class="o">]</span>
+</span><span class='line'>****************************************
+</span><span class='line'>changed: <span class="o">[</span>cs01.hq.example.com<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>TASK: <span class="o">[</span>Assembling Configuration<span class="o">]</span>
+</span><span class='line'>**********************************************
+</span><span class='line'>changed: <span class="o">[</span>cs01.hq.example.com<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>TASK: <span class="o">[</span>Deploying Configuration<span class="o">]</span>
+</span><span class='line'>***********************************************
+</span><span class='line'>changed: <span class="o">[</span>cs01.hq.example.com<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>PLAY <span class="o">[</span>Destroying Setup<span class="o">]</span>
+</span><span class='line'>*******************************************************
+</span><span class='line'>
+</span><span class='line'>TASK: <span class="o">[</span>Destroying Temporary Directory<span class="o">]</span>
+</span><span class='line'>****************************************
+</span><span class='line'>changed: <span class="o">[</span>cs01.hq.example.com<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>TASK: <span class="o">[</span>Destroying Compiled Configuration<span class="o">]</span>
+</span><span class='line'>*************************************
+</span><span class='line'>changed: <span class="o">[</span>cs01.hq.example.com<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>PLAY RECAP
+</span><span class='line'>********************************************************************
+</span><span class='line'>cs01.hq.example.com            : <span class="nv">ok</span><span class="o">=</span>7    <span class="nv">changed</span><span class="o">=</span>6    <span class="nv">unreachable</span><span class="o">=</span>0 <span class="nv">failed</span><span class="o">=</span>0
+</span><span class='line'>
+</span><span class='line'>╭─tchristiansen52 at us160536 in ~ using ‹ruby-2.1.1› 14-06-21 - 11:43:42
+</span><span class='line'>╰─○
+</span></code></pre></td></tr></table></div></figure>
 
-<blockquote><p>My output is slightly different as I&rsquo;m using a slightly more involved
-playbook.</p></blockquote>
+
+<blockquote><p>My output is slightly different as I&rsquo;m testing a production
+deployment.</p></blockquote>
 
 <h1>Summary</h1>
 
@@ -785,7 +852,7 @@ modules is decently easy, and the overall design makes sense.</p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://yangweilim.com/blog/ansible-network-automation/" data-via="oss_stack" data-counturl="http://yangweilim.com/blog/ansible-network-automation/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://oss-stack.io//blog/ansible-network-automation/" data-via="oss_stack" data-counturl="http://oss-stack.io//blog/ansible-network-automation/" >Tweet</a>
   
   
   
@@ -793,6 +860,8 @@ modules is decently easy, and the overall design makes sense.</p>
 
     
     <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/things-you-dont-know-about-your-network/" title="Previous Post: Things You Don't Know About Your Network">&laquo; Things You Don't Know About Your Network</a>
       
       
     </p>
@@ -815,6 +884,22 @@ modules is decently easy, and the overall design makes sense.</p>
     
       <li class="post">
         <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
       </li>
     
   </ul>
@@ -874,8 +959,8 @@ modules is decently easy, and the overall design makes sense.</p>
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://yangweilim.com/blog/ansible-network-automation/';
-        var disqus_url = 'http://yangweilim.com/blog/ansible-network-automation/';
+        var disqus_identifier = 'http://oss-stack.io//blog/ansible-network-automation/';
+        var disqus_url = 'http://oss-stack.io//blog/ansible-network-automation/';
         var disqus_script = 'embed.js';
       
     (function () {
@@ -914,6 +999,22 @@ modules is decently easy, and the overall design makes sense.</p>
     
       <li class="post">
         <a href="/blog/ansible-network-automation/">Ansible Network Automation</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/things-you-dont-know-about-your-network/">Things You Don't Know About Your Network</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/juniper-ntp-configuration-and-protection/">Snippet: Juniper NTP Configuration and Protection</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/exploring-junos-traffic-monitoring/">Exploring Junos Traffic Monitoring</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/f5-sflow-configuration/">Snippet: F5 sFlow Configuration</a>
       </li>
     
   </ul>
