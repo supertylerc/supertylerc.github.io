@@ -296,7 +296,7 @@ Here's an example filtering on "**cron**":
 > shows what it would actually look like.  I've blacked out actual
 > hostnames (sorry).
 
-{% imgpopup /images/rtail_ex.jpg 50% rtail example %}
+{% #imgpopup /images/rtail_ex.jpg 50% rtail example %}
 
 ## The End
 
