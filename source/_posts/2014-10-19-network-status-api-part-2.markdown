@@ -203,4 +203,4 @@ but that's off a ways.
 And here's a screen capture of an AngularJS application that uses this
 API.
 
-{% img /images/front_end_poc.png 50% Network Status Front End POC %}
+{% img /images/front_end_poc.png Network Status Front End POC %}
