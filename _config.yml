@@ -1,0 +1,48 @@
+# Site settings
+title: Tyler on Tech
+description: "Tyler talks tech and sometimes personal nonsense."
+baseurl: ''
+url: ''
+# User settings
+username: supertylerc
+user_title: Tyler Christiansen
+email: code@tylerc.me
+twitter_username: supertylerc
+github_username:  supertylerc
+disqus_username: supertylerc
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: /:title/
+
+
+# html minify
+compress_html:
+  clippings: all
+  comments: all
+  endings: []
+  profile: false
+
+# Links to include in menu navigation
+links:
+  - title: home
+    url: /
+  - title: my posts
+    url: /posts
+  - title: series
+    url: /series
+  - title: tags
+    url: /tags
+  - title: about me
+    url: /about
+# projects in header index
+projects:
+  - name: aker
+    url: https://github.com/aker-gateway/Aker
+  - name: oxidized
+    url: https://github.com/ytti/oxidized
+  - name: oxidized-web
+    url: https://github.com/ytti/oxidized-web
+# exclude my node related stuff
+exclude: ['package.json', 'src', 'node_modules']
