@@ -183,3 +183,8 @@ generally be deployed as close to the physical topology as possible.
 In other words, route reflectors in the data path should not be several
 hops, areas, zones, or tiers away from their clients.  This is to
 prevent suboptimal routing and certain failure scenarios.
+
+# Next Time
+
+In the next post, we'll look at deploying BGP for multi-homed
+enterprises.
