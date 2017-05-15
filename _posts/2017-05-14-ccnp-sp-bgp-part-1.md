@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "CCNP SP Advanced Route - BGP Part 1"
+title: "Dissecting the SPADVROUTE Syllabus: BGP, Part 1"
 description: |
   First in a series on the BGP section of the CCNP SP Syllabus.
 category: ccnp-sp
-tags: [ccnp-sp, ios, ios-xe, ios-xr, bgp, labs, advsproute]
+tags: [ccnp-sp, ios, ios-xe, ios-xr, bgp, advsproute]
 ---
 
 > This post is the first in a series on BGP in the CCNP-SP SPADVROUTE
@@ -22,8 +22,8 @@ Provider IP NGN Environment`.  Specifically, it covers the following:
 # 1.1 BGP Routing Processes in IOS-XR
 
 > For some reason, the BGP routing processes in IOS-XE are not called
-> out in the syllabus.  For this reason, this section focuses
-> exclusively on IOS-XR.
+> out in the syllabus.  As a result, this section focuses exclusively
+> on IOS-XR.
 
 ## BGP Process Manager
 
@@ -107,10 +107,6 @@ RP/0/0/CPU0:ios-xr(config-bgp)#timers bgp 90 180 90
 RP/0/0/CPU0:ios-xr(config-bgp)#neighbor 1.2.3.4
 RP/0/0/CPU0:ios-xr(config-bgp-nbr)#remote-as 65001
 RP/0/0/CPU0:ios-xr(config-bgp-nbr)#timers 100 200 130
-RP/0/0/CPU0:ios-xr(config-bgp-nbr)#root
-RP/0/0/CPU0:ios-xr(config)#commit
-Mon May 15 03:14:04.286 UTC
-RP/0/0/CPU0:ios-xr(config)#
 ```
 
 > The above values are really, really, really astonishingly bad.  Don't
@@ -146,7 +142,6 @@ RP/0/0/CPU0:ios-xr(config)#router bgp 65001
 RP/0/0/CPU0:ios-xr(config-bgp)#bgp scan-time ?
   <5-3600>  Scanner interval (seconds)
 RP/0/0/CPU0:ios-xr(config-bgp)#bgp scan-time 5
-RP/0/0/CPU0:ios-xr(config-bgp)#
 ```
 
 > Again, this is such an incredibly horrible idea.  Never do this.
@@ -210,7 +205,6 @@ ios-xe#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
 ios-xe(config)#router bgp 65000
 ios-xe(config-router)#neighbor 1.2.3.4 advertisement-interval 0
-ios-xe(config-router)#
 ```
 
 #### IOS-XR
@@ -262,6 +256,7 @@ ios-xe(config-router)#bgp confederation identifier ?
   <1.0-XX.YY>     AS number
 
 ios-xe(config-router)#bgp confederation identifier 1234
+ios-xe(config-router)#bgp confederation peers 65001 65002
 ```
 
 ## IOS-XR
@@ -275,7 +270,9 @@ RP/0/0/CPU0:ios-xr(config-bgp)#bgp confederation identifier ?
   <1-65535>.          4-byte AS number in asdot (X.Y) format - first half (X)
   <65536-4294967295>  4-byte AS number in asplain format
 RP/0/0/CPU0:ios-xr(config-bgp)#bgp confederation identifier 1234
-RP/0/0/CPU0:ios-xr(config-bgp)#
+RP/0/0/CPU0:ios-xr(config-bgp)#bgp confederation peers
+RP/0/0/CPU0:ios-xr(config-bgp-confed-peers)#65001
+RP/0/0/CPU0:ios-xr(config-bgp-confed-peers)#65002
 ```
 
 # Next Time
