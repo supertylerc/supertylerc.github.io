@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Dissecting the SPADVROUTE Syllabus: BGP, Part 1"
+title: "Dissecting the CCNP SPADVROUTE Syllabus: BGP, Part 1"
 description: |
   First in a series on the BGP section of the CCNP SP Syllabus.
 category: ccnp-sp
